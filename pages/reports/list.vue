@@ -1,10 +1,9 @@
-```vue
 <script setup lang="ts">
+
 const deleteReport = (report: Report) => {
-
   reports.value = reports.value.filter(r => r !== report)
-
 }
+
 type Task = {
   text: string
   done: boolean
@@ -73,14 +72,12 @@ const logout = () => {
 
       </div>
 
-
       <NuxtLink
           to="/reports/create"
           class="bg-red-600 text-white px-4 py-2 rounded"
       >
         + Dodaj raport
       </NuxtLink>
-
 
       <div
           v-for="report in departmentReports"
@@ -89,14 +86,14 @@ const logout = () => {
       >
 
         <h2 class="font-semibold text-lg mb-2">
-          📅 {{ report.date }} • Zmiana {{ report.shift }}
+           {{ report.date }} • Zmiana {{ report.shift }}
         </h2>
 
         <p class="text-sm text-gray-500 mb-4">
           Autor: {{ report.user }}
         </p>
 
-        <p class="mb-4">
+        <p class="mb-4 whitespace-pre-line">
           {{ report.description }}
         </p>
 
@@ -107,17 +104,30 @@ const logout = () => {
         <div
             v-for="task in report.tasks"
             :key="task.text"
-            class="flex items-center gap-3 border-b py-2"
+            class="border-b py-3"
         >
 
-          <input type="checkbox" v-model="task.done" />
+          <div class="flex items-start gap-3">
 
-          <span
-              class="flex-1"
-              :class="task.done ? 'line-through text-gray-400' : ''"
-          >
-          {{ task.text }}
-        </span>
+            <input
+                type="checkbox"
+                v-model="task.done"
+                class="mt-1"
+            />
+
+            <ul class="list-disc pl-5 flex-1">
+
+              <li
+                  v-for="line in task.text.split('\n')"
+                  :key="line"
+                  :class="task.done ? 'line-through text-gray-400' : ''"
+              >
+                {{ line }}
+              </li>
+
+            </ul>
+
+          </div>
 
         </div>
 
@@ -135,4 +145,3 @@ const logout = () => {
   </div>
 
 </template>
-```
