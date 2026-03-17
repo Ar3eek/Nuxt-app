@@ -239,11 +239,8 @@ const formatDate = (timestamp:number) => {
                 >
                   Usuń
                 </button>
-
               </div>
-
             </div>
-
 
             <!-- edycja -->
 
@@ -260,7 +257,6 @@ const formatDate = (timestamp:number) => {
               />
 
               <div class="flex gap-3">
-
                 <button
                     @click="saveEdit(index)"
                     class="bg-green-600 text-white px-4 py-2 rounded"
