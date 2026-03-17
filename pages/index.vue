@@ -96,7 +96,7 @@ const todoTasks = computed(() => {
     <section class="max-w-6xl mx-auto px-8 mb-16">
 
       <h2 class="text-2xl font-bold mb-6 text-red-700">
-        ⚠️ Ważne informacje
+        ⚠ Ważne informacje
       </h2>
 
       <div class="space-y-4">
@@ -133,7 +133,7 @@ const todoTasks = computed(() => {
       <div class="bg-white p-6 rounded-xl shadow">
 
         <p class="text-gray-700">
-          📢 Pamiętajcie o uzupełnianiu raportów po każdej zmianie.
+          Pamiętajcie o uzupełnianiu raportów po każdej zmianie.
           Jeśli pojawią się problemy lub opóźnienia – wpisujcie je w komentarzach.
         </p>
 
