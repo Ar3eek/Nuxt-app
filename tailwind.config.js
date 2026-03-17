@@ -6,7 +6,11 @@ export default {
     "./components/**/*.{vue,js,ts}"
   ],
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        sans: ['Inter', 'system-ui', 'sans-serif']
+      }
+    }
   },
   plugins: [],
 }

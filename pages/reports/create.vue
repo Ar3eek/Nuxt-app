@@ -32,7 +32,9 @@ const department = ref('')
 const users = ref([
   'Paweł Kozak',
   'Arkadiusz Korzeniowski',
-  'Łukasz Stasak'
+  'Łukasz Stasak',
+  'Marcin Bernat',
+  'Marcin ',
 ])
 
 const selectedUser = ref('')

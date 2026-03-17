@@ -53,27 +53,10 @@ const managerMenu = {
             :to="managerMenu.path"
             class="text-gray-600 hover:text-red-600 transition flex items-center gap-2"
         >
-          🔐 {{ managerMenu.name }}
+          {{ managerMenu.name }}
         </NuxtLink>
 
       </div>
-
-
-      <!-- Actions -->
-
-      <div class="flex items-center gap-4">
-
-        <NuxtLink
-            to="/reports/create"
-            class="px-5 py-2 rounded-lg
-        bg-red-600 text-white font-semibold
-        hover:bg-red-700 transition shadow"
-        >
-          + Dodaj Raport
-        </NuxtLink>
-
-      </div>
-
     </nav>
 
   </header>
