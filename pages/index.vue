@@ -42,8 +42,6 @@ const formatDate = (timestamp:number) => {
 
 }
 
-/* zbieranie wszystkich zadań */
-
 const todoTasks = computed(() => {
 
   const tasks:any[] = []

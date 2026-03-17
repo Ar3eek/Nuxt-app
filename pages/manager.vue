@@ -128,8 +128,6 @@ const formatDate = (timestamp:number) => {
         </p>
 
       </div>
-
-
       <!-- LOGOWANIE -->
 
       <div v-if="!logged" class="bg-white rounded-2xl shadow-lg p-10 space-y-6">
@@ -153,9 +151,6 @@ const formatDate = (timestamp:number) => {
         </button>
 
       </div>
-
-
-      <!-- PANEL -->
 
       <div v-if="logged" class="space-y-8">
 
@@ -196,8 +191,6 @@ const formatDate = (timestamp:number) => {
           </button>
 
         </div>
-
-
         <!-- LISTA OGŁOSZEŃ -->
 
         <div class="bg-white rounded-2xl shadow-lg p-10 space-y-6">

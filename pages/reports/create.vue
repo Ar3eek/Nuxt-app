@@ -28,12 +28,11 @@ const description = ref('')
 const department = ref('')
 
 /* użytkownicy */
-
 const users = ref([
-  'Paweł Kozak',
-  'Arkadiusz Korzeniowski',
-  'Łukasz Stasak',
-  'Marcin Bernat',
+  'Paweł Kok',
+  'Arkadiusz Korziski',
+  'Łukasz Stak',
+  'Marcin Bet',
   'Marcin ',
 ])
 
