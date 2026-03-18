@@ -1,8 +1,5 @@
 <script setup lang="ts">
-
-const deleteReport = (report: Report) => {
-  reports.value = reports.value.filter(r => r !== report)
-}
+import { ref, onMounted, computed } from 'vue'
 
 type Task = {
   text: string
@@ -18,11 +15,32 @@ type Report = {
   tasks: Task[]
 }
 
-const reports = useState<Report[]>('reports', () => [])
-
+const reports = ref<Report[]>([])
 const department = ref('')
 
-onMounted(() => {
+const loadReports = async () => {
+
+  try {
+
+    const data = await $fetch<Report[]>('/api/getReports')
+
+    reports.value = data
+
+  } catch (error) {
+
+    console.error('Błąd pobierania raportów', error)
+
+  }
+
+}
+
+const deleteReport = (report: Report) => {
+
+  reports.value = reports.value.filter(r => r !== report)
+
+}
+
+onMounted(async () => {
 
   const dep = localStorage.getItem('department')
 
@@ -33,12 +51,16 @@ onMounted(() => {
 
   department.value = dep
 
+  await loadReports()
+
 })
 
 const departmentReports = computed(() => {
+
   return reports.value.filter(
       r => r.department === department.value
   )
+
 })
 
 const logout = () => {
@@ -48,7 +70,6 @@ const logout = () => {
   navigateTo('/')
 
 }
-
 </script>
 
 <template>
@@ -86,16 +107,19 @@ const logout = () => {
       >
 
         <h2 class="font-semibold text-lg mb-2">
-           {{ report.date }} • Zmiana {{ report.shift }}
+          {{ report.date }} • Zmiana {{ report.shift }}
         </h2>
 
         <p class="text-sm text-gray-500 mb-4">
           Autor: {{ report.user }}
         </p>
 
-        <p class="mb-4 whitespace-pre-line">
-          {{ report.description }}
-        </p>
+        <!-- OPIS RAPORTU -->
+
+        <div
+            class="report-content mb-4"
+            v-html="report.description"
+        ></div>
 
         <h3 class="font-semibold mb-2">
           Zadania

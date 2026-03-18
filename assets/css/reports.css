@@ -1,0 +1,49 @@
+.report-content {
+    font-size: 15px;
+    line-height: 1.7;
+    color: #222;
+}
+
+.report-content p {
+    margin-bottom: 10px;
+}
+
+.report-content ul {
+    list-style: disc;
+    padding-left: 20px;
+    margin-bottom: 10px;
+}
+
+.report-content ol {
+    list-style: decimal;
+    padding-left: 20px;
+    margin-bottom: 10px;
+}
+
+.report-content li {
+    margin-bottom: 4px;
+}
+
+.report-content h1 {
+    font-size: 22px;
+    font-weight: 700;
+    margin-top: 12px;
+}
+
+.report-content h2 {
+    font-size: 20px;
+    font-weight: 600;
+    margin-top: 10px;
+}
+
+.report-content h3 {
+    font-size: 18px;
+    font-weight: 600;
+    margin-top: 8px;
+}
+
+.report-content img {
+    max-width: 100%;
+    border-radius: 8px;
+    margin-top: 10px;
+}

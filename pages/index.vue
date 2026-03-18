@@ -1,5 +1,20 @@
 <script setup lang="ts">
+import { ref, onMounted, computed } from "vue"
+onMounted(async () => {
 
+  try {
+
+    const data = await $fetch<Announcement[]>("/api/getAnnouncements")
+
+    announcements.value = data
+
+  } catch (err) {
+
+    console.error("Błąd pobierania ogłoszeń:", err)
+
+  }
+
+})
 type Task = {
   text: string
   done: boolean
@@ -23,7 +38,7 @@ type Announcement = {
 
 const reports = useState<Report[]>('reports', () => [])
 
-const announcements = useState<Announcement[]>('announcements', () => [])
+const announcements = ref<Announcement[]>([])
 
 const goToMenu = () => navigateTo('/reports')
 

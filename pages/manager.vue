@@ -1,12 +1,15 @@
 <script setup lang="ts">
+import { ref, onMounted } from "vue"
 
 type Announcement = {
-  text:string
-  timestamp:number
-  author:string
+  text: string
+  timestamp: number
+  author: string
 }
 
-const announcements = useState<Announcement[]>("announcements", () => [])
+/* dane */
+
+const announcements = ref<Announcement[]>([])
 
 const password = ref("")
 const logged = ref(false)
@@ -20,6 +23,26 @@ const editingIndex = ref<number | null>(null)
 const editText = ref("")
 const editAuthor = ref("")
 
+/* pobieranie ogłoszeń */
+
+onMounted(async () => {
+
+  try {
+
+    const data = await $fetch<Announcement[]>("/api/getAnnouncements")
+
+    announcements.value = data
+
+  } catch (err) {
+
+    console.error("Błąd pobierania ogłoszeń", err)
+
+  }
+
+})
+
+/* logowanie */
+
 const login = () => {
 
   if(password.value === "admin123"){
@@ -32,19 +55,34 @@ const login = () => {
 
 /* dodanie ogłoszenia */
 
-const addAnnouncement = () => {
+const addAnnouncement = async () => {
 
   if(!text.value.trim()) return
 
-  announcements.value.unshift({
+  const newAnnouncement: Announcement = {
     text: text.value,
     timestamp: Date.now(),
     author: author.value
-  })
+  }
 
-  text.value = ""
+  try {
 
-  successMessage.value = "✅ Ogłoszenie zostało dodane"
+    await $fetch("/api/saveAnnouncement",{
+      method:"POST",
+      body:newAnnouncement
+    })
+
+    announcements.value.unshift(newAnnouncement)
+
+    text.value=""
+
+    successMessage.value = "✅ Ogłoszenie zostało dodane"
+
+  } catch(err){
+
+    console.error(err)
+
+  }
 
   setTimeout(()=>{
     successMessage.value=""
@@ -54,11 +92,24 @@ const addAnnouncement = () => {
 
 /* usuwanie */
 
-const deleteAnnouncement = (index:number) => {
+const deleteAnnouncement = async (index:number) => {
 
-  announcements.value.splice(index,1)
+  try {
 
-  successMessage.value = "🗑 Ogłoszenie usunięte"
+    await $fetch("/api/deleteAnnouncement",{
+      method:"POST",
+      body:{ index }
+    })
+
+    announcements.value.splice(index,1)
+
+    successMessage.value = "🗑 Ogłoszenie usunięte"
+
+  } catch(err){
+
+    console.error(err)
+
+  }
 
   setTimeout(()=>{
     successMessage.value=""
@@ -66,7 +117,7 @@ const deleteAnnouncement = (index:number) => {
 
 }
 
-/* edycja */
+/* rozpoczęcie edycji */
 
 const startEdit = (index:number) => {
 
@@ -76,14 +127,33 @@ const startEdit = (index:number) => {
 
 }
 
-const saveEdit = (index:number) => {
+/* zapis edycji */
 
-  announcements.value[index].text = editText.value
-  announcements.value[index].author = editAuthor.value
+const saveEdit = async (index:number) => {
 
-  editingIndex.value = null
+  try {
 
-  successMessage.value = "✏️ Ogłoszenie zaktualizowane"
+    await $fetch("/api/updateAnnouncement",{
+      method:"POST",
+      body:{
+        index,
+        text: editText.value,
+        author: editAuthor.value
+      }
+    })
+
+    announcements.value[index].text = editText.value
+    announcements.value[index].author = editAuthor.value
+
+    editingIndex.value = null
+
+    successMessage.value = "✏️ Ogłoszenie zaktualizowane"
+
+  } catch(err){
+
+    console.error(err)
+
+  }
 
   setTimeout(()=>{
     successMessage.value=""
@@ -91,7 +161,7 @@ const saveEdit = (index:number) => {
 
 }
 
-/* format daty + godziny */
+/* format daty */
 
 const formatDate = (timestamp:number) => {
 
@@ -105,9 +175,7 @@ const formatDate = (timestamp:number) => {
       })
 
 }
-
 </script>
-
 
 <template>
 
@@ -128,6 +196,7 @@ const formatDate = (timestamp:number) => {
         </p>
 
       </div>
+
       <!-- LOGOWANIE -->
 
       <div v-if="!logged" class="bg-white rounded-2xl shadow-lg p-10 space-y-6">
@@ -191,6 +260,7 @@ const formatDate = (timestamp:number) => {
           </button>
 
         </div>
+
         <!-- LISTA OGŁOSZEŃ -->
 
         <div class="bg-white rounded-2xl shadow-lg p-10 space-y-6">
@@ -232,7 +302,9 @@ const formatDate = (timestamp:number) => {
                 >
                   Usuń
                 </button>
+
               </div>
+
             </div>
 
             <!-- edycja -->
@@ -250,6 +322,7 @@ const formatDate = (timestamp:number) => {
               />
 
               <div class="flex gap-3">
+
                 <button
                     @click="saveEdit(index)"
                     class="bg-green-600 text-white px-4 py-2 rounded"

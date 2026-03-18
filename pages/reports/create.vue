@@ -1,6 +1,7 @@
-```vue
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { QuillEditor } from '@vueup/vue-quill'
+import '@vueup/vue-quill/dist/vue-quill.snow.css'
 
 type Task = {
   text: string
@@ -16,8 +17,6 @@ type Report = {
   tasks: Task[]
 }
 
-const reports = useState<Report[]>('reports', () => [])
-
 const goBack = () => navigateTo('/reports/list')
 
 /* pola raportu */
@@ -28,12 +27,13 @@ const description = ref('')
 const department = ref('')
 
 /* użytkownicy */
+
 const users = ref([
   'Paweł Kok',
   'Arkadiusz Korziski',
   'Łukasz Stak',
   'Marcin Bet',
-  'Marcin ',
+  'Marcin'
 ])
 
 const selectedUser = ref('')
@@ -98,7 +98,7 @@ const resetForm = () => {
 
 }
 
-const addReport = () => {
+const addReport = async () => {
 
   if (!selectedUser.value) {
     alert('Wybierz autora raportu')
@@ -113,17 +113,29 @@ const addReport = () => {
   const newReport: Report = {
     date: date.value,
     shift: shift.value,
-    description: description.value.trim(),
+    description: description.value,
     department: department.value,
     user: selectedUser.value,
     tasks: tasks.value.map(t => ({ ...t }))
   }
 
-  reports.value.push(newReport)
+  try {
 
-  resetForm()
+    await $fetch('/api/saveReport', {
+      method: 'POST',
+      body: newReport
+    })
 
-  navigateTo('/reports/list')
+    resetForm()
+
+    navigateTo('/reports/list')
+
+  } catch (error) {
+
+    console.error(error)
+    alert('Błąd zapisu raportu')
+
+  }
 
 }
 </script>
@@ -149,7 +161,6 @@ const addReport = () => {
         Dział: <b>{{ department }}</b>
       </p>
 
-
       <!-- data -->
 
       <input
@@ -157,7 +168,6 @@ const addReport = () => {
           v-model="date"
           class="border p-3 rounded w-full mb-4"
       />
-
 
       <!-- zmiana -->
 
@@ -168,7 +178,6 @@ const addReport = () => {
         </option>
 
       </select>
-
 
       <!-- autor -->
 
@@ -188,7 +197,6 @@ const addReport = () => {
 
       </select>
 
-
       <div v-if="selectedUser === 'new'" class="mb-4">
 
         <input
@@ -205,7 +213,6 @@ const addReport = () => {
         </button>
 
       </div>
-
 
       <!-- zadania -->
 
@@ -224,8 +231,8 @@ const addReport = () => {
           <input type="checkbox" v-model="task.done" />
 
           <span class="flex-1">
-{{ task.text }}
-</span>
+            {{ task.text }}
+          </span>
 
           <button
               @click="removeTask(index)"
@@ -237,7 +244,6 @@ const addReport = () => {
         </div>
 
       </div>
-
 
       <div class="flex gap-2 mb-6">
 
@@ -256,15 +262,22 @@ const addReport = () => {
 
       </div>
 
+      <!-- opis raportu -->
 
-      <!-- opis -->
+      <h2 class="font-semibold mb-2">
+        Opis raportu
+      </h2>
 
-      <textarea
-          v-model="description"
-          placeholder="Opis raportu"
-          class="border p-3 rounded w-full mb-6 min-h-[120px]"
-      ></textarea>
+      <ClientOnly>
 
+        <QuillEditor
+            v-model:content="description"
+            contentType="html"
+            theme="snow"
+            class="mb-6 bg-gray-100 border rounded h-[200px]"
+        />
+
+      </ClientOnly>
 
       <button
           @click="addReport"
@@ -278,4 +291,3 @@ const addReport = () => {
   </div>
 
 </template>
-```
