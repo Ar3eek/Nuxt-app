@@ -15,11 +15,6 @@ const departments = [
   "Spedycja"
 ]
 
-const passwords:any = {
-  Dostawy: "dostawy123",
-  Magazyn: "magazyn123",
-  Spedycja: "spedycja123"
-}
 
 const selectedDepartment = ref("")
 const password = ref("")
@@ -42,17 +37,24 @@ onMounted(async () => {
 
 })
 
-const login = () => {
+const login = async () => {
 
   if(!selectedDepartment.value){
     error.value = "Wybierz dział"
     return
   }
 
-  if(password.value === passwords[selectedDepartment.value]){
+  const res:any = await $fetch("/api/login",{
+    method:"POST",
+    body:{
+      department:selectedDepartment.value,
+      password:password.value
+    }
+  })
+
+  if(res.success){
 
     localStorage.setItem("department", selectedDepartment.value)
-
     navigateTo("/reports/list")
 
   }else{
@@ -78,15 +80,15 @@ const formatDate = (timestamp:number) => {
 
 <template>
 
-  <div class="min-h-screen bg-gray-100 p-10">
+  <div class="min-h-screen w-full flex items-center justify-center bg-gray-100 p-4 sm:p-6 lg:p-10">
 
-    <div class="max-w-5xl mx-auto grid md:grid-cols-2 gap-10">
+    <div class="w-full max-w-xl">
 
       <!-- LOGOWANIE -->
 
-      <div class="bg-white p-10 rounded-xl shadow">
+      <div class="bg-white p-6 sm:p-8 lg:p-10 rounded-xl shadow w-full">
 
-        <h1 class="text-2xl font-bold mb-6">
+        <h1 class="text-2xl font-bold mb-6 text-center">
           Logowanie do działu
         </h1>
 

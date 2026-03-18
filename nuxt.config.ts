@@ -12,6 +12,12 @@ export default defineNuxtConfig({
   css: [
     '~/assets/css/reports.css'
   ],
+  runtimeConfig: {
+    dostawyPassword: process.env.DOSTAWY_PASSWORD,
+    magazynPassword: process.env.MAGAZYN_PASSWORD,
+    spedycjaPassword: process.env.SPEDYCJA_PASSWORD,
+    adminPassword:process.env.ADMIN_PASSWORD
+  },
 
   app: {
     head: {

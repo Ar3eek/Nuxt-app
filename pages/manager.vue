@@ -43,16 +43,26 @@ onMounted(async () => {
 
 /* logowanie */
 
-const login = () => {
+const login = async () => {
 
-  if(password.value === "admin123"){
+  const res:any = await $fetch("/api/adminLogin",{
+    method:"POST",
+    body:{
+      password:password.value
+    }
+  })
+
+  if(res.success){
+
     logged.value = true
-  } else {
+
+  }else{
+
     alert("Błędne hasło")
+
   }
 
 }
-
 /* dodanie ogłoszenia */
 
 const addAnnouncement = async () => {
@@ -121,9 +131,12 @@ const deleteAnnouncement = async (index:number) => {
 
 const startEdit = (index:number) => {
 
+  const item = announcements.value[index]
+  if(!item) return
+
   editingIndex.value = index
-  editText.value = announcements.value[index].text
-  editAuthor.value = announcements.value[index].author
+  editText.value = item.text
+  editAuthor.value = item.author
 
 }
 
@@ -142,8 +155,11 @@ const saveEdit = async (index:number) => {
       }
     })
 
-    announcements.value[index].text = editText.value
-    announcements.value[index].author = editAuthor.value
+    const item = announcements.value[index]
+    if(!item) return
+
+    item.text = editText.value
+    item.author = editAuthor.value
 
     editingIndex.value = null
 
