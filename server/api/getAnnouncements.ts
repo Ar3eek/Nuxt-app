@@ -1,16 +1,15 @@
-import fs from "fs"
-import path from "path"
+import { db } from '~/server/utils/db'
 
-export default defineEventHandler(() => {
+export default defineEventHandler(async () => {
+    try {
+        const [rows]: any = await db.execute(
+            "SELECT * FROM announcements ORDER BY timestamp DESC"
+        )
 
-    const filePath = path.resolve("announcements.json")
+        return rows
 
-    if (!fs.existsSync(filePath)) {
+    } catch (err) {
+        console.error(err)
         return []
     }
-
-    const data = fs.readFileSync(filePath, "utf-8")
-
-    return JSON.parse(data)
-
 })
