@@ -1,5 +1,28 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue"
+onMounted(async () => {
+
+  const savedDep = localStorage.getItem("department")
+
+  // 🔥 AUTO LOGIN
+  if (savedDep) {
+    navigateTo("/reports/list")
+    return
+  }
+
+  try {
+
+    const data = await $fetch<Announcement[]>("/api/getAnnouncements")
+
+    announcements.value = data
+
+  } catch (err) {
+
+    console.error("Błąd pobierania ogłoszeń", err)
+
+  }
+
+})
 
 type Announcement = {
   text:string
@@ -111,6 +134,7 @@ const formatDate = (timestamp:number) => {
           <input
               :type="showPassword ? 'text' : 'password'"
               v-model="password"
+              @keydown.enter="login"
               placeholder="Hasło"
               class="border p-3 rounded w-full"
           />

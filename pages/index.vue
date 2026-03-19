@@ -110,7 +110,7 @@ const todoTasks = computed(() => {
 
     <section class="max-w-6xl mx-auto px-8 mb-16">
 
-      <h2 class="text-2xl font-bold mb-6 text-red-700">
+      <h2 class="text-2xl font-sans mb-6 text-red-700">
         ⚠ Ważne informacje
       </h2>
 
@@ -141,7 +141,7 @@ const todoTasks = computed(() => {
 
     <section class="max-w-6xl mx-auto px-8 mb-16">
 
-      <h2 class="text-2xl font-bold mb-6">
+      <h2 class="text-2xl font-sans mb-6">
         Ogłoszenia zespołu
       </h2>
 

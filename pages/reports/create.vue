@@ -274,7 +274,7 @@ const addReport = async () => {
             v-model:content="description"
             contentType="html"
             theme="snow"
-            class="mb-6 bg-gray-100 border rounded h-[200px]"
+            class="mb-6 bg-gray-100 border rounded h-[200px] rounded-b-lg "
         />
 
       </ClientOnly>

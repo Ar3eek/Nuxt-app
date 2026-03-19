@@ -13,7 +13,12 @@ export default defineEventHandler(async (event) => {
         reports = JSON.parse(fs.readFileSync(filePath, "utf-8"))
     }
 
-    reports.push(body)
+    const newReport = {
+        ...body,
+        id: Date.now().toString() // 🔥 KLUCZOWE
+    }
+
+    reports.push(newReport)
 
     fs.writeFileSync(filePath, JSON.stringify(reports, null, 2))
 

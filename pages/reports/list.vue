@@ -34,10 +34,18 @@ const loadReports = async () => {
 
 }
 
-const deleteReport = (report: Report) => {
+const deleteReport = async (report: Report) => {
+  try {
+    await $fetch('/api/deleteReport', {
+      method: 'POST',
+      body: { id: report.id }
+    })
 
-  reports.value = reports.value.filter(r => r !== report)
+    reports.value = reports.value.filter(r => r.id !== report.id)
 
+  } catch (error) {
+    console.error('Błąd usuwania raportu', error)
+  }
 }
 
 onMounted(async () => {

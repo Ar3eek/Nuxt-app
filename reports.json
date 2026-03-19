@@ -1,67 +1,44 @@
 [
   {
-    "date": "2026-03-18",
+    "date": "2026-03-19",
     "shift": "Zmiana 2",
-    "description": "<p>ciekawe czy nie zniknie </p>",
+    "description": "<p>Czy sie suuwa ? </p><p>usuwa usuwa </p>",
     "department": "Magazyn",
-    "user": "Arkadiusz Korziski",
-    "tasks": [
-      {
-        "text": "asas",
-        "done": false
-      }
-    ]
-  },
-  {
-    "date": "2026-03-18",
-    "shift": "Zmiana 3",
-    "description": "<p>asdadasd</p>",
-    "department": "Dostawy",
     "user": "Paweł Kok",
     "tasks": [
       {
-        "text": "asdasd",
+        "text": "czy się usuwa ?",
         "done": false
       }
-    ]
+    ],
+    "id": "1773917181418"
   },
   {
-    "date": "2026-03-18",
+    "date": "2026-03-19",
     "shift": "Zmiana 2",
-    "description": "<p>Jebac DOstawy i tego frajersona </p>",
-    "department": "Dostawy",
-    "user": "Łukasz Stak",
-    "tasks": [
-      {
-        "text": "Jebac HWDP",
-        "done": false
-      }
-    ]
-  },
-  {
-    "date": "2026-03-18",
-    "shift": "Zmiana 3",
-    "description": "<h1><strong>NO i nie zniknelo !!!</strong></h1>",
+    "description": "<p>hahahah</p>",
     "department": "Magazyn",
-    "user": "Łukasz Stak",
+    "user": "Paweł Kok",
     "tasks": [
       {
-        "text": "ciekawe czy nie zniknie 2",
+        "text": "CO jest ?",
         "done": false
       }
-    ]
+    ],
+    "id": "1773917195437"
   },
   {
-    "date": "2026-03-18",
-    "shift": "Zmiana 2",
-    "description": "<p>*\tmocno </p><ul><li>mocno</li><li>mocno</li><li>mcono </li></ul>",
-    "department": "Spedycja",
-    "user": "Arkadiusz Korziski",
+    "date": "2026-03-19",
+    "shift": "Zmiana 1",
+    "description": "<p>BOTOKS </p>",
+    "department": "Dostawy",
+    "user": "Marcin Bet",
     "tasks": [
       {
-        "text": "Lubimy w dupe",
+        "text": "Jesc spac jak w tamgodzi",
         "done": false
       }
-    ]
+    ],
+    "id": "1773917378225"
   }
 ]
