@@ -29,11 +29,10 @@ const department = ref('')
 /* użytkownicy */
 
 const users = ref([
-  'Paweł Kok',
-  'Arkadiusz Korziski',
-  'Łukasz Stak',
-  'Marcin Bet',
-  'Marcin'
+  'Paweł Kozak',
+  'Arkadiusz Korzeniowski',
+  'Łukasz Stasak',
+  'Marcin Bernat',
 ])
 
 const selectedUser = ref('')
@@ -250,6 +249,7 @@ const addReport = async () => {
         <input
             v-model="newTask"
             placeholder="Dodaj nowe zadanie"
+            @keydown.enter="addTask"
             class="border p-2 rounded w-full"
         />
 
@@ -274,7 +274,7 @@ const addReport = async () => {
             v-model:content="description"
             contentType="html"
             theme="snow"
-            class="mb-6 bg-gray-100 border rounded h-[200px] rounded-b-lg "
+            class="mb-6 bg-gray-100 border rounded h-[250px] rounded-b-lg "
         />
 
       </ClientOnly>

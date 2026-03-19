@@ -2,43 +2,29 @@
   {
     "date": "2026-03-19",
     "shift": "Zmiana 2",
-    "description": "<p>Czy sie suuwa ? </p><p>usuwa usuwa </p>",
-    "department": "Magazyn",
-    "user": "Paweł Kok",
+    "description": "<p>Raport zyciem </p>",
+    "department": "Spedycja",
+    "user": "Łukasz Stasak",
     "tasks": [
       {
-        "text": "czy się usuwa ?",
+        "text": "Jeść Pić spać",
         "done": false
       }
     ],
-    "id": "1773917181418"
+    "id": "1773918693239"
   },
   {
     "date": "2026-03-19",
     "shift": "Zmiana 2",
-    "description": "<p>hahahah</p>",
-    "department": "Magazyn",
-    "user": "Paweł Kok",
-    "tasks": [
-      {
-        "text": "CO jest ?",
-        "done": false
-      }
-    ],
-    "id": "1773917195437"
-  },
-  {
-    "date": "2026-03-19",
-    "shift": "Zmiana 1",
-    "description": "<p>BOTOKS </p>",
+    "description": "<p>WMS znowu nie działal</p>",
     "department": "Dostawy",
-    "user": "Marcin Bet",
+    "user": "Arkadiusz Korzeniowski",
     "tasks": [
       {
-        "text": "Jesc spac jak w tamgodzi",
+        "text": "IPO 25819 do przyjecia",
         "done": false
       }
     ],
-    "id": "1773917378225"
+    "id": "1773918753582"
   }
 ]
