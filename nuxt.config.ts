@@ -18,7 +18,9 @@ export default defineNuxtConfig({
     spedycjaPassword: process.env.SPEDYCJA_PASSWORD,
     adminPassword:process.env.ADMIN_PASSWORD
   },
-
+  nitro: {
+    preset: 'netlify'
+  },
   app: {
     head: {
       htmlAttrs: {

@@ -1,27 +1,24 @@
-import fs from "fs"
-import path from "path"
+import { db } from '../utils/db'
 
 export default defineEventHandler(async (event) => {
-
     const body = await readBody(event)
 
-    const filePath = path.resolve("reports.json")
+    try {
+        await db.execute(
+            `INSERT INTO reports (data, zmiana, pracownik, opis)
+       VALUES (?, ?, ?, ?)`,
+            [
+                body.date,
+                body.shift,
+                body.user,
+                body.description
+            ]
+        )
 
-    let reports = []
+        return { success: true }
 
-    if (fs.existsSync(filePath)) {
-        reports = JSON.parse(fs.readFileSync(filePath, "utf-8"))
+    } catch (err) {
+        console.error(err)
+        return { success: false }
     }
-
-    const newReport = {
-        ...body,
-        id: Date.now().toString() // 🔥 KLUCZOWE
-    }
-
-    reports.push(newReport)
-
-    fs.writeFileSync(filePath, JSON.stringify(reports, null, 2))
-
-    return { success: true }
-
 })
