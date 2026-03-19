@@ -4,7 +4,7 @@ onMounted(async () => {
 
   const savedDep = localStorage.getItem("department")
 
-  // 🔥 AUTO LOGIN
+  // AUTO LOGIN
   if (savedDep) {
     navigateTo("/reports/list")
     return
@@ -13,7 +13,6 @@ onMounted(async () => {
   try {
 
     const data = await $fetch<Announcement[]>("/api/getAnnouncements")
-
     announcements.value = data
 
   } catch (err) {

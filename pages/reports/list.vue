@@ -98,9 +98,7 @@ const logout = () => {
         >
           Wyloguj
         </button>
-
       </div>
-
       <NuxtLink
           to="/reports/create"
           class="bg-red-600 text-white px-4 py-2 rounded"
@@ -113,7 +111,6 @@ const logout = () => {
           :key="report.date + report.user + report.shift"
           class="bg-white p-6 rounded-xl shadow mt-6"
       >
-
         <h2 class="font-semibold text-lg mb-2">
           {{ report.date }} • Zmiana {{ report.shift }}
         </h2>

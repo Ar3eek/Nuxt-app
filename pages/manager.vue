@@ -198,29 +198,22 @@ const formatDate = (timestamp:number) => {
   <main class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-200 py-20 px-6">
 
     <div class="max-w-3xl mx-auto">
-
       <!-- HEADER -->
-
       <div class="text-center mb-10">
 
         <h1 class="text-4xl font-bold text-gray-800 mb-2">
           Panel kierownika
         </h1>
-
         <p class="text-gray-600">
           Dodawaj i zarządzaj ogłoszeniami dla pracowników
         </p>
-
       </div>
-
       <!-- LOGOWANIE -->
 
       <div v-if="!logged" class="bg-white rounded-2xl shadow-lg p-10 space-y-6">
-
         <h2 class="text-xl font-semibold text-gray-700">
           Logowanie kierownika
         </h2>
-
         <input
             v-model="password"
             type="password"
