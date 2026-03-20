@@ -7,6 +7,7 @@ type Task = {
 }
 
 type Report = {
+  id: number // 🔥 DODAJ
   date: string
   shift: string
   description: string
