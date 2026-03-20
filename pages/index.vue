@@ -1,20 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from "vue"
-onMounted(async () => {
 
-  try {
-
-    const data = await $fetch<Announcement[]>("/api/getAnnouncements")
-
-    announcements.value = data
-
-  } catch (err) {
-
-    console.error("Błąd pobierania ogłoszeń:", err)
-
-  }
-
-})
 type Task = {
   text: string
   done: boolean
@@ -30,7 +16,9 @@ type Report = {
   tasks: Task[]
 }
 
+// 🔥 DODAJ ID
 type Announcement = {
+  id: number
   text: string
   timestamp: number
   author: string
@@ -40,26 +28,39 @@ const reports = useState<Report[]>('reports', () => [])
 
 const announcements = ref<Announcement[]>([])
 
+// 🔥 LOAD
+const loadAnnouncements = async () => {
+  try {
+    announcements.value = await $fetch("/api/getAnnouncements")
+  } catch (err) {
+    console.error("Błąd pobierania ogłoszeń:", err)
+  }
+}
+
+onMounted(() => {
+  loadAnnouncements()
+
+  // 🔥 AUTO REFRESH co 5 sekund
+  setInterval(loadAnnouncements, 5000)
+})
+
 const goToMenu = () => navigateTo('/reports')
 
-/* format daty + godziny */
-
+// 📅 FORMAT
 const formatDate = (timestamp:number) => {
-
   const date = new Date(timestamp)
-
   return date.toLocaleDateString('pl-PL') + " • " +
       date.toLocaleTimeString('pl-PL',{
         hour:'2-digit',
         minute:'2-digit',
         second:'2-digit'
       })
-
 }
 
+// 📋 TASKI
 const todoTasks = computed(() => {
 
-  const tasks:any[] = []
+  const tasks: { text: string; department: string; date: string }[] = []
 
   reports.value.forEach(report => {
     report.tasks.forEach(task => {
@@ -75,7 +76,6 @@ const todoTasks = computed(() => {
 
   return tasks
 })
-
 </script>
 
 

@@ -1,15 +1,23 @@
-import { readFile, writeFile } from 'fs/promises'
+import { db } from '../utils/db'
 
 export default defineEventHandler(async (event) => {
+
     const body = await readBody(event)
-    const { id } = body
 
-    const file = await readFile('reports.json', 'utf-8')
-    let reports = JSON.parse(file)
+    try {
 
-    reports = reports.filter((r: any) => r.id !== id)
+        const [result]: any = await db.execute(
+            'DELETE FROM reports WHERE id = ?',
+            [body.id]
+        )
 
-    await writeFile('reports.json', JSON.stringify(reports, null, 2))
+        return { success: true }
 
-    return { success: true }
+    } catch (err) {
+
+        console.error("DELETE ERROR:", err)
+        return { success: false }
+
+    }
+
 })

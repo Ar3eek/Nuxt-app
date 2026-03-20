@@ -1,23 +1,20 @@
-import fs from "fs"
-import path from "path"
+import { db } from '~/server/utils/db'
 
 export default defineEventHandler(async (event) => {
 
-    const { index, text, author } = await readBody(event)
+    const { id, text, author } = await readBody(event)
 
-    const filePath = path.resolve("announcements.json")
+    try {
 
-    if (!fs.existsSync(filePath)) {
-        return { success:false }
+        await db.execute(
+            "UPDATE announcements SET text = ?, author = ? WHERE id = ?",
+            [text, author, id]
+        )
+
+        return { success: true }
+
+    } catch (err) {
+        console.error(err)
+        return { success: false }
     }
-
-    const data = JSON.parse(fs.readFileSync(filePath,"utf-8"))
-
-    data[index].text = text
-    data[index].author = author
-
-    fs.writeFileSync(filePath, JSON.stringify(data,null,2))
-
-    return { success:true }
-
 })

@@ -2,12 +2,11 @@
 import { ref, onMounted } from "vue"
 
 type Announcement = {
+  id: number
   text: string
   timestamp: number
   author: string
 }
-
-/* dane */
 
 const announcements = ref<Announcement[]>([])
 
@@ -19,337 +18,210 @@ const text = ref("")
 
 const successMessage = ref("")
 
-const editingIndex = ref<number | null>(null)
+const editingId = ref<number | null>(null)
 const editText = ref("")
 const editAuthor = ref("")
 
-/* pobieranie ogłoszeń */
-
-onMounted(async () => {
-
+// 🔥 LOAD
+const loadAnnouncements = async () => {
   try {
-
-    const data = await $fetch<Announcement[]>("/api/getAnnouncements")
-
-    announcements.value = data
-
+    announcements.value = await $fetch("/api/getAnnouncements")
   } catch (err) {
-
     console.error("Błąd pobierania ogłoszeń", err)
-
   }
+}
 
-})
+onMounted(loadAnnouncements)
 
-/* logowanie */
-
+// 🔐 LOGIN
 const login = async () => {
-
   const res:any = await $fetch("/api/adminLogin",{
     method:"POST",
-    body:{
-      password:password.value
-    }
+    body:{ password:password.value }
   })
 
   if(res.success){
-
     logged.value = true
-
   }else{
-
     alert("Błędne hasło")
-
   }
-
 }
-/* dodanie ogłoszenia */
 
+// ➕ ADD
 const addAnnouncement = async () => {
 
   if(!text.value.trim()) return
-
-  const newAnnouncement: Announcement = {
-    text: text.value,
-    timestamp: Date.now(),
-    author: author.value
-  }
 
   try {
 
     await $fetch("/api/saveAnnouncement",{
       method:"POST",
-      body:newAnnouncement
+      body:{
+        text: text.value,
+        author: author.value,
+        timestamp: Date.now()
+      }
     })
 
-    announcements.value.unshift(newAnnouncement)
+    text.value = ""
 
-    text.value=""
+    await loadAnnouncements() // 🔥 ważne
 
-    successMessage.value = "✅ Ogłoszenie zostało dodane"
+    successMessage.value = "✅ Dodano ogłoszenie"
 
   } catch(err){
-
     console.error(err)
-
   }
 
-  setTimeout(()=>{
-    successMessage.value=""
-  },3000)
-
+  setTimeout(()=> successMessage.value="",3000)
 }
 
-/* usuwanie */
-
-const deleteAnnouncement = async (index:number) => {
+// ❌ DELETE
+const deleteAnnouncement = async (item: Announcement) => {
 
   try {
 
     await $fetch("/api/deleteAnnouncement",{
       method:"POST",
-      body:{ index }
+      body:{ id: item.id }
     })
 
-    announcements.value.splice(index,1)
+    await loadAnnouncements() // 🔥 ważne
 
-    successMessage.value = "🗑 Ogłoszenie usunięte"
+    successMessage.value = "🗑 Usunięto ogłoszenie"
 
   } catch(err){
-
     console.error(err)
-
   }
 
-  setTimeout(()=>{
-    successMessage.value=""
-  },3000)
-
+  setTimeout(()=> successMessage.value="",3000)
 }
 
-/* rozpoczęcie edycji */
-
-const startEdit = (index:number) => {
-
-  const item = announcements.value[index]
-  if(!item) return
-
-  editingIndex.value = index
+// ✏️ START EDIT
+const startEdit = (item: Announcement) => {
+  editingId.value = item.id
   editText.value = item.text
   editAuthor.value = item.author
-
 }
 
-/* zapis edycji */
-
-const saveEdit = async (index:number) => {
+// 💾 SAVE EDIT
+const saveEdit = async (item: Announcement) => {
 
   try {
 
     await $fetch("/api/updateAnnouncement",{
       method:"POST",
       body:{
-        index,
+        id: item.id,
         text: editText.value,
         author: editAuthor.value
       }
     })
 
-    const item = announcements.value[index]
-    if(!item) return
+    editingId.value = null
 
-    item.text = editText.value
-    item.author = editAuthor.value
+    await loadAnnouncements() // 🔥 ważne
 
-    editingIndex.value = null
-
-    successMessage.value = "✏️ Ogłoszenie zaktualizowane"
+    successMessage.value = "✏️ Zaktualizowano ogłoszenie"
 
   } catch(err){
-
     console.error(err)
-
   }
 
-  setTimeout(()=>{
-    successMessage.value=""
-  },3000)
-
+  setTimeout(()=> successMessage.value="",3000)
 }
 
-/* format daty */
-
+// 📅 FORMAT
 const formatDate = (timestamp:number) => {
-
   const date = new Date(timestamp)
-
   return date.toLocaleDateString('pl-PL') + " • " +
       date.toLocaleTimeString('pl-PL',{
         hour:'2-digit',
-        minute:'2-digit',
-        second:'2-digit'
+        minute:'2-digit'
       })
-
 }
 </script>
 
 <template>
 
-  <main class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-200 py-20 px-6">
+  <main class="min-h-screen bg-gray-100 py-20 px-6">
 
     <div class="max-w-3xl mx-auto">
-      <!-- HEADER -->
+
       <div class="text-center mb-10">
-
-        <h1 class="text-4xl font-bold text-gray-800 mb-2">
-          Panel kierownika
-        </h1>
-        <p class="text-gray-600">
-          Dodawaj i zarządzaj ogłoszeniami dla pracowników
-        </p>
+        <h1 class="text-4xl font-bold mb-2">Panel kierownika</h1>
       </div>
-      <!-- LOGOWANIE -->
 
-      <div v-if="!logged" class="bg-white rounded-2xl shadow-lg p-10 space-y-6">
-        <h2 class="text-xl font-semibold text-gray-700">
-          Logowanie kierownika
-        </h2>
+      <!-- LOGIN -->
+      <div v-if="!logged" class="bg-white p-8 rounded-xl shadow">
+
         <input
             v-model="password"
             type="password"
-            placeholder="Hasło kierownika"
+            placeholder="Hasło"
             @keydown.enter="login"
-            class="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+            class="border p-3 w-full mb-4 rounded"
         />
 
         <button
             @click="login"
-            class="w-full bg-red-600 text-white py-3 rounded-lg font-semibold hover:bg-red-700 transition"
+            class="w-full bg-red-600 text-white py-3 rounded"
         >
           Zaloguj
         </button>
 
       </div>
 
-      <div v-if="logged" class="space-y-8">
+      <!-- PANEL -->
+      <div v-else class="space-y-6">
 
-        <!-- DODAWANIE -->
+        <!-- ADD -->
+        <div class="bg-white p-6 rounded-xl shadow">
 
-        <div class="bg-white rounded-2xl shadow-lg p-10 space-y-6">
-
-          <h2 class="text-xl font-semibold text-gray-700">
-            Dodaj nowe ogłoszenie
-          </h2>
-
-          <div
-              v-if="successMessage"
-              class="bg-green-50 border border-green-200 text-green-700 p-3 rounded-lg text-sm"
-          >
+          <div v-if="successMessage" class="mb-3 text-green-600">
             {{ successMessage }}
           </div>
 
-          <input
-              v-model="author"
-              placeholder="Autor"
-              class="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-          />
+          <input v-model="author" class="border p-2 w-full mb-2 rounded" />
+          <textarea v-model="text" class="border p-2 w-full mb-2 rounded"/>
 
-          <textarea
-              v-model="text"
-              rows="4"
-              placeholder="Treść ogłoszenia..."
-              class="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-          />
-
-          <button
-              @click="addAnnouncement"
-              :disabled="!text.trim()"
-              class="w-full bg-red-600 text-white py-3 rounded-lg font-semibold hover:bg-red-700 transition disabled:opacity-50"
-          >
-            Dodaj ogłoszenie
+          <button @click="addAnnouncement" class="bg-red-600 text-white px-4 py-2 rounded">
+            Dodaj
           </button>
 
         </div>
 
-        <!-- LISTA OGŁOSZEŃ -->
+        <!-- LISTA -->
+        <div
+            v-for="item in announcements"
+            :key="item.id"
+            class="bg-white p-5 rounded-xl shadow"
+        >
 
-        <div class="bg-white rounded-2xl shadow-lg p-10 space-y-6">
+          <!-- VIEW -->
+          <div v-if="editingId !== item.id">
 
-          <h2 class="text-xl font-semibold text-gray-700">
-            Istniejące ogłoszenia
-          </h2>
+            <p>{{ item.text }}</p>
 
-          <div
-              v-for="(item,index) in announcements"
-              :key="index"
-              class="border border-gray-200 rounded-lg p-5 space-y-3"
-          >
-
-            <!-- widok -->
-
-            <div v-if="editingIndex !== index">
-
-              <p class="text-gray-800 font-medium">
-                {{ item.text }}
-              </p>
-
-              <div class="text-sm text-gray-500">
-                {{ formatDate(item.timestamp) }} • {{ item.author }}
-              </div>
-
-              <div class="flex gap-3 pt-2">
-
-                <button
-                    @click="startEdit(index)"
-                    class="text-blue-600 hover:underline text-sm"
-                >
-                  Edytuj
-                </button>
-
-                <button
-                    @click="deleteAnnouncement(index)"
-                    class="text-red-600 hover:underline text-sm"
-                >
-                  Usuń
-                </button>
-
-              </div>
-
+            <div class="text-sm text-gray-500">
+              {{ formatDate(item.timestamp) }} • {{ item.author }}
             </div>
 
-            <!-- edycja -->
-
-            <div v-if="editingIndex === index" class="space-y-3">
-
-              <input
-                  v-model="editAuthor"
-                  class="w-full border p-2 rounded"
-              />
-
-              <textarea
-                  v-model="editText"
-                  class="w-full border p-2 rounded"
-              />
-
-              <div class="flex gap-3">
-
-                <button
-                    @click="saveEdit(index)"
-                    class="bg-green-600 text-white px-4 py-2 rounded"
-                >
-                  Zapisz
-                </button>
-
-                <button
-                    @click="editingIndex=null"
-                    class="bg-gray-300 px-4 py-2 rounded"
-                >
-                  Anuluj
-                </button>
-
-              </div>
-
+            <div class="flex gap-3 mt-2">
+              <button @click="startEdit(item)">Edytuj</button>
+              <button @click="deleteAnnouncement(item)">Usuń</button>
             </div>
+
+          </div>
+
+          <!-- EDIT -->
+          <div v-else>
+
+            <input v-model="editAuthor" class="border p-2 w-full mb-2"/>
+            <textarea v-model="editText" class="border p-2 w-full mb-2"/>
+
+            <button @click="saveEdit(item)">Zapisz</button>
+            <button @click="editingId=null">Anuluj</button>
 
           </div>
 

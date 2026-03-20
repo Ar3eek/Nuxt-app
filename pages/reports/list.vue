@@ -109,7 +109,7 @@ const logout = () => {
 
       <div
           v-for="report in departmentReports"
-          :key="report.date + report.user + report.shift"
+          :key="report.id"
           class="bg-white p-6 rounded-xl shadow mt-6"
       >
         <h2 class="font-semibold text-lg mb-2">
