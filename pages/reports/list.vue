@@ -80,98 +80,122 @@ const logout = () => {
 
 }
 </script>
-
 <template>
-
-  <div class="min-h-screen bg-gray-100 p-10">
+  <div class="min-h-screen bg-gray-100 px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
 
     <div class="max-w-5xl mx-auto">
 
-      <div class="flex justify-between items-center mb-8">
+      <!-- HEADER -->
+      <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-8">
 
-        <h1 class="text-3xl font-bold">
-          Raporty działu: {{ department }}
+        <h1 class="text-2xl sm:text-3xl font-bold">
+          Raporty działu:
+          <span class="text-red-600">{{ department }}</span>
         </h1>
 
         <button
             @click="logout"
-            class="text-red-600"
+            class="text-red-600 hover:text-red-700 text-sm sm:text-base"
         >
           Wyloguj
         </button>
+
       </div>
-      <NuxtLink
-          to="/reports/create"
-          class="bg-red-600 text-white px-4 py-2 rounded"
-      >
-        + Dodaj raport
-      </NuxtLink>
 
-      <div
-          v-for="report in departmentReports"
-          :key="report.id"
-          class="bg-white p-6 rounded-xl shadow mt-6"
-      >
-        <h2 class="font-semibold text-lg mb-2">
-          {{ report.date }} • Zmiana {{ report.shift }}
-        </h2>
+      <!-- ADD BUTTON -->
+      <div class="mb-6">
+        <NuxtLink
+            to="/reports/create"
+            class="inline-block bg-red-600 hover:bg-red-700 transition text-white px-5 py-2.5 rounded-lg text-sm sm:text-base font-medium"
+        >
+          + Dodaj raport
+        </NuxtLink>
+      </div>
 
-        <p class="text-sm text-gray-500 mb-4">
-          Autor: {{ report.user }}
-        </p>
-
-        <!-- OPIS RAPORTU -->
+      <!-- REPORTS -->
+      <div class="space-y-6">
 
         <div
-            class="report-content mb-4"
-            v-html="report.description"
-        ></div>
-
-        <h3 class="font-semibold mb-2">
-          Zadania
-        </h3>
-
-        <div
-            v-for="task in report.tasks"
-            :key="task.text"
-            class="border-b py-3"
+            v-for="report in departmentReports"
+            :key="report.id"
+            class="bg-white p-5 sm:p-6 rounded-2xl shadow-md hover:shadow-lg transition"
         >
 
-          <div class="flex items-start gap-3">
+          <!-- TOP -->
+          <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 mb-3">
 
-            <input
-                type="checkbox"
-                v-model="task.done"
-                class="mt-1"
-            />
+            <h2 class="font-semibold text-base sm:text-lg">
+              {{ report.date }} • Zmiana {{ report.shift }}
+            </h2>
 
-            <ul class="list-disc pl-5 flex-1">
+            <span class="text-xs sm:text-sm text-gray-500">
+              {{ report.user }}
+            </span>
 
-              <li
-                  v-for="line in task.text.split('\n')"
-                  :key="line"
-                  :class="task.done ? 'line-through text-gray-400' : ''"
-              >
-                {{ line }}
-              </li>
+          </div>
 
-            </ul>
+          <!-- DESCRIPTION -->
+          <div
+              class="report-content mb-5 text-sm sm:text-base text-gray-700"
+              v-html="report.description"
+          ></div>
+
+          <!-- TASKS -->
+          <h3 class="font-semibold mb-2 text-sm sm:text-base">
+            Zadania
+          </h3>
+
+          <div class="divide-y">
+
+            <div
+                v-for="task in report.tasks"
+                :key="task.text"
+                class="py-3"
+            >
+
+              <div class="flex items-start gap-3">
+
+                <input
+                    type="checkbox"
+                    v-model="task.done"
+                    class="mt-1 accent-red-600"
+                />
+
+                <ul class="list-disc pl-5 flex-1 text-sm sm:text-base">
+
+                  <li
+                      v-for="line in task.text.split('\n')"
+                      :key="line"
+                      :class="task.done ? 'line-through text-gray-400' : ''"
+                  >
+                    {{ line }}
+                  </li>
+
+                </ul>
+
+              </div>
+
+            </div>
+
+          </div>
+
+          <!-- ACTIONS -->
+          <div class="flex justify-end mt-4">
+
+            <button
+                @click="deleteReport(report)"
+                class="text-red-600 hover:text-red-700 text-sm"
+            >
+              Usuń raport
+            </button>
 
           </div>
 
         </div>
-
-        <button
-            @click="deleteReport(report)"
-            class="text-red-600 text-sm mt-4"
-        >
-          Usuń raport
-        </button>
 
       </div>
 
     </div>
 
   </div>
-
 </template>

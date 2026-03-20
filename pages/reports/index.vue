@@ -101,22 +101,20 @@ const formatDate = (timestamp:number) => {
 </script>
 
 <template>
+  <div class="min-h-screen w-full flex items-center justify-center bg-gray-100 px-4 sm:px-6 lg:px-8">
 
-  <div class="min-h-screen w-full flex items-center justify-center bg-gray-100 p-4 sm:p-6 lg:p-10">
-
-    <div class="w-full max-w-xl">
+    <div class="w-full max-w-md sm:max-w-lg lg:max-w-xl">
 
       <!-- LOGOWANIE -->
+      <div class="bg-white p-6 sm:p-8 lg:p-10 rounded-2xl shadow-lg w-full">
 
-      <div class="bg-white p-6 sm:p-8 lg:p-10 rounded-xl shadow w-full">
-
-        <h1 class="text-2xl font-bold mb-6 text-center">
+        <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold mb-6 text-center">
           Logowanie do działu
         </h1>
 
         <select
             v-model="selectedDepartment"
-            class="border p-3 rounded w-full mb-4"
+            class="border border-gray-300 focus:border-red-500 focus:ring-1 focus:ring-red-500 p-3 rounded-lg w-full mb-4 text-sm sm:text-base"
         >
           <option disabled value="">
             Wybierz dział
@@ -125,7 +123,6 @@ const formatDate = (timestamp:number) => {
           <option v-for="dep in departments" :key="dep">
             {{ dep }}
           </option>
-
         </select>
 
         <div class="relative mb-4">
@@ -135,26 +132,26 @@ const formatDate = (timestamp:number) => {
               v-model="password"
               @keydown.enter="login"
               placeholder="Hasło"
-              class="border p-3 rounded w-full"
+              class="border border-gray-300 focus:border-red-500 focus:ring-1 focus:ring-red-500 p-3 rounded-lg w-full pr-12 text-sm sm:text-base"
           />
 
           <button
               type="button"
               @click="showPassword=!showPassword"
-              class="absolute right-3 top-3"
+              class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-black"
           >
             👁
           </button>
 
         </div>
 
-        <p v-if="error" class="text-red-500 text-sm mb-4">
+        <p v-if="error" class="text-red-500 text-sm mb-4 text-center">
           {{ error }}
         </p>
 
         <button
             @click="login"
-            class="w-full bg-red-600 text-white py-3 rounded"
+            class="w-full bg-red-600 hover:bg-red-700 transition text-white py-3 rounded-lg text-sm sm:text-base font-medium"
         >
           Zaloguj
         </button>
@@ -164,5 +161,4 @@ const formatDate = (timestamp:number) => {
     </div>
 
   </div>
-
 </template>

@@ -144,28 +144,31 @@ const formatDate = (timestamp:number) => {
 
 <template>
 
-  <main class="min-h-screen bg-gray-100 py-20 px-6">
+  <main class="min-h-screen bg-gray-100 px-4 sm:px-6 lg:px-8 py-10">
 
     <div class="max-w-3xl mx-auto">
 
-      <div class="text-center mb-10">
-        <h1 class="text-4xl font-bold mb-2">Panel kierownika</h1>
+      <!-- HEADER -->
+      <div class="text-center mb-8 sm:mb-10">
+        <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold">
+          Panel kierownika
+        </h1>
       </div>
 
       <!-- LOGIN -->
-      <div v-if="!logged" class="bg-white p-8 rounded-xl shadow">
+      <div v-if="!logged" class="bg-white p-6 sm:p-8 rounded-2xl shadow-md">
 
         <input
             v-model="password"
             type="password"
             placeholder="Hasło"
             @keydown.enter="login"
-            class="border p-3 w-full mb-4 rounded"
+            class="border border-gray-300 focus:border-red-500 focus:ring-1 focus:ring-red-500 p-3 w-full mb-4 rounded-lg text-sm sm:text-base"
         />
 
         <button
             @click="login"
-            class="w-full bg-red-600 text-white py-3 rounded"
+            class="w-full bg-red-600 hover:bg-red-700 transition text-white py-3 rounded-lg text-sm sm:text-base font-medium"
         >
           Zaloguj
         </button>
@@ -176,52 +179,107 @@ const formatDate = (timestamp:number) => {
       <div v-else class="space-y-6">
 
         <!-- ADD -->
-        <div class="bg-white p-6 rounded-xl shadow">
+        <div class="bg-white p-5 sm:p-6 rounded-2xl shadow-md">
 
-          <div v-if="successMessage" class="mb-3 text-green-600">
+          <div v-if="successMessage" class="mb-3 text-green-600 text-sm sm:text-base">
             {{ successMessage }}
           </div>
 
-          <input v-model="author" class="border p-2 w-full mb-2 rounded" />
-          <textarea v-model="text" class="border p-2 w-full mb-2 rounded"/>
+          <input
+              v-model="author"
+              placeholder="Autor"
+              class="border border-gray-300 focus:border-red-500 focus:ring-1 focus:ring-red-500 p-2.5 w-full mb-2 rounded-lg text-sm sm:text-base"
+          />
 
-          <button @click="addAnnouncement" class="bg-red-600 text-white px-4 py-2 rounded">
+          <textarea
+              v-model="text"
+              placeholder="Treść ogłoszenia..."
+              rows="4"
+              class="border border-gray-300 focus:border-red-500 focus:ring-1 focus:ring-red-500 p-2.5 w-full mb-3 rounded-lg text-sm sm:text-base"
+          />
+
+          <button
+              @click="addAnnouncement"
+              class="bg-red-600 hover:bg-red-700 transition text-white px-4 py-2 rounded-lg text-sm sm:text-base"
+          >
             Dodaj
           </button>
 
         </div>
 
         <!-- LISTA -->
-        <div
-            v-for="item in announcements"
-            :key="item.id"
-            class="bg-white p-5 rounded-xl shadow"
-        >
+        <div class="space-y-4">
 
-          <!-- VIEW -->
-          <div v-if="editingId !== item.id">
+          <div
+              v-for="item in announcements"
+              :key="item.id"
+              class="bg-white p-4 sm:p-5 rounded-2xl shadow-md hover:shadow-lg transition"
+          >
 
-            <p>{{ item.text }}</p>
+            <!-- VIEW -->
+            <div v-if="editingId !== item.id">
 
-            <div class="text-sm text-gray-500">
-              {{ formatDate(item.timestamp) }} • {{ item.author }}
+              <p class="text-sm sm:text-base text-gray-800 mb-2 whitespace-pre-line">
+                {{ item.text }}
+              </p>
+
+              <div class="text-xs sm:text-sm text-gray-500 mb-3">
+                {{ formatDate(item.timestamp) }} • {{ item.author }}
+              </div>
+
+              <div class="flex gap-4 text-sm">
+
+                <button
+                    @click="startEdit(item)"
+                    class="text-blue-600 hover:underline"
+                >
+                  Edytuj
+                </button>
+
+                <button
+                    @click="deleteAnnouncement(item)"
+                    class="text-red-600 hover:underline"
+                >
+                  Usuń
+                </button>
+
+              </div>
+
             </div>
 
-            <div class="flex gap-3 mt-2">
-              <button @click="startEdit(item)">Edytuj</button>
-              <button @click="deleteAnnouncement(item)">Usuń</button>
+            <!-- EDIT -->
+            <div v-else>
+
+              <input
+                  v-model="editAuthor"
+                  class="border border-gray-300 p-2.5 w-full mb-2 rounded-lg text-sm sm:text-base"
+              />
+
+              <textarea
+                  v-model="editText"
+                  rows="4"
+                  class="border border-gray-300 p-2.5 w-full mb-3 rounded-lg text-sm sm:text-base"
+              />
+
+              <div class="flex gap-4 text-sm">
+
+                <button
+                    @click="saveEdit(item)"
+                    class="text-green-600 hover:underline"
+                >
+                  Zapisz
+                </button>
+
+                <button
+                    @click="editingId=null"
+                    class="text-gray-600 hover:underline"
+                >
+                  Anuluj
+                </button>
+
+              </div>
+
             </div>
-
-          </div>
-
-          <!-- EDIT -->
-          <div v-else>
-
-            <input v-model="editAuthor" class="border p-2 w-full mb-2"/>
-            <textarea v-model="editText" class="border p-2 w-full mb-2"/>
-
-            <button @click="saveEdit(item)">Zapisz</button>
-            <button @click="editingId=null">Anuluj</button>
 
           </div>
 
