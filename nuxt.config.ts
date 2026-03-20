@@ -19,7 +19,7 @@ export default defineNuxtConfig({
     adminPassword:process.env.ADMIN_PASSWORD
   },
   nitro: {
-    preset: 'netlify'
+    preset: 'vercel'
   },
   app: {
     head: {
