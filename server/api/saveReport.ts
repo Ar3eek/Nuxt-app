@@ -18,7 +18,7 @@ export default defineEventHandler(async (event) => {
         return { success: true }
 
     } catch (err) {
-        console.error(err)
+        console.error("DB ERROR:", err)
         return { success: false }
     }
 })
