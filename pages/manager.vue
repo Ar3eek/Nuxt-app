@@ -18,6 +18,9 @@ const text = ref("")
 
 const successMessage = ref("")
 
+// 🔥 NOWE - POWITANIE
+const welcomeMessage = ref("")
+
 const editingId = ref<number | null>(null)
 const editText = ref("")
 const editAuthor = ref("")
@@ -42,6 +45,18 @@ const login = async () => {
 
   if(res.success){
     logged.value = true
+
+    // 🔥 POWITANIE
+    const hour = new Date().getHours()
+
+    if(hour < 12) welcomeMessage.value = "☀️ Dzień dobry!"
+    else if(hour < 18) welcomeMessage.value = "👋 Witamy ponownie!"
+    else welcomeMessage.value = "🌙 Dobry wieczór!"
+
+    setTimeout(() => {
+      welcomeMessage.value = ""
+    }, 3000)
+
   }else{
     alert("Błędne hasło")
   }
@@ -65,7 +80,7 @@ const addAnnouncement = async () => {
 
     text.value = ""
 
-    await loadAnnouncements() // 🔥 ważne
+    await loadAnnouncements()
 
     successMessage.value = "✅ Dodano ogłoszenie"
 
@@ -86,7 +101,7 @@ const deleteAnnouncement = async (item: Announcement) => {
       body:{ id: item.id }
     })
 
-    await loadAnnouncements() // 🔥 ważne
+    await loadAnnouncements()
 
     successMessage.value = "🗑 Usunięto ogłoszenie"
 
@@ -97,14 +112,13 @@ const deleteAnnouncement = async (item: Announcement) => {
   setTimeout(()=> successMessage.value="",3000)
 }
 
-// ✏️ START EDIT
+// ✏️ EDIT
 const startEdit = (item: Announcement) => {
   editingId.value = item.id
   editText.value = item.text
   editAuthor.value = item.author
 }
 
-// 💾 SAVE EDIT
 const saveEdit = async (item: Announcement) => {
 
   try {
@@ -120,7 +134,7 @@ const saveEdit = async (item: Announcement) => {
 
     editingId.value = null
 
-    await loadAnnouncements() // 🔥 ważne
+    await loadAnnouncements()
 
     successMessage.value = "✏️ Zaktualizowano ogłoszenie"
 
@@ -145,6 +159,16 @@ const formatDate = (timestamp:number) => {
 <template>
 
   <main class="min-h-screen bg-gray-100 px-4 sm:px-6 lg:px-8 py-10">
+
+    <!-- 🔥 TOAST POWITALNY -->
+    <div
+        v-if="welcomeMessage"
+        class="fixed top-6 left-1/2 -translate-x-1/2 bg-white border border-gray-200 shadow-lg px-6 py-3 rounded-xl z-50 animate-fade"
+    >
+      <span class="text-sm font-medium text-gray-800">
+        {{ welcomeMessage }}
+      </span>
+    </div>
 
     <div class="max-w-3xl mx-auto">
 
@@ -288,7 +312,16 @@ const formatDate = (timestamp:number) => {
       </div>
 
     </div>
-
   </main>
-
 </template>
+
+<style>
+@keyframes fade {
+  from { opacity: 0; transform: translate(-50%, -10px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+.animate-fade {
+  animation: fade 0.3s ease;
+}
+</style>
