@@ -7,7 +7,8 @@ export default defineEventHandler(async (event) => {
     const passwords:any = {
         Dostawy: config.dostawyPassword,
         Magazyn: config.magazynPassword,
-        Spedycja: config.spedycjaPassword
+        Spedycja: config.spedycjaPassword,
+        Kierownik: config.kierownikPassword,
     }
 
     if(passwords[body.department] === body.password){

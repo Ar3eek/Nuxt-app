@@ -4,7 +4,7 @@ export default defineEventHandler(async (event)=>{
 
     const config = useRuntimeConfig()
 
-    if(body.password === config.adminPassword){
+    if(body.password === config.kierownikPassword){
 
         return { success:true }
 

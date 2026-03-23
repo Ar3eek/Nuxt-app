@@ -1,54 +1,94 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, onBeforeUnmount } from 'vue'
 
-type Task = {
-  text: string
-  done: boolean
-}
+const { user, logout } = useAuth()
 
-type Report = {
-  id: number
-  date: string
-  shift: string
-  description: string
-  department: string
-  user: string
-  status: string
-  tasks: Task[]
-}
+const reports = ref<any[]>([])
+const search = ref("")
+const openStatusId = ref<number | null>(null)
 
-const reports = ref<Report[]>([])
-const department = ref('')
-const search = ref('')
-
-/* 🔥 LOAD */
+// 🔥 LOAD REPORTS
 const loadReports = async () => {
   try {
-    const data = await $fetch<Report[]>('/api/getReports')
+    const data = await $fetch('/api/getReports', {
+      cache: 'no-store'
+    })
 
-    // 🔴 domyślnie "new"
-    reports.value = data.map(r => ({
+    reports.value = data.map((r:any) => ({
       ...r,
-      status: r.status || 'new'
+      status: r.status || 'new',
+      tasks: typeof r.tasks === 'string'
+          ? JSON.parse(r.tasks)
+          : r.tasks || []
     }))
 
-  } catch (error) {
-    console.error(error)
+  } catch (e) {
+    console.error('LOAD ERROR:', e)
   }
 }
 
-/* 🔥 DELETE */
-const deleteReport = async (report: Report) => {
-  await $fetch('/api/deleteReport', {
-    method: 'POST',
-    body: { id: report.id }
-  })
-
-  reports.value = reports.value.filter(r => r.id !== report.id)
+// 🔐 INIT
+const handleClickOutside = () => {
+  openStatusId.value = null
 }
 
-/* 🔥 UPDATE STATUS */
-const updateStatus = async (report: Report) => {
+onMounted(async () => {
+
+  if (!user.value) {
+    return navigateTo('/')
+  }
+
+  if (user.value.role === 'manager') {
+    return navigateTo('/manager')
+  }
+
+  await loadReports()
+  window.addEventListener('click', handleClickOutside)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('click', handleClickOutside)
+})
+
+// 🔍 FILTER
+const departmentReports = computed(() => {
+
+  if (!user.value) return []
+
+  let data = reports.value
+
+  data = data.filter(r =>
+      r.department?.toLowerCase() === user.value.department?.toLowerCase()
+  )
+
+  if (search.value.length >= 2) {
+    const s = search.value.toLowerCase()
+
+    data = data.filter(r =>
+        r.user?.toLowerCase().includes(s) ||
+        r.description?.toLowerCase().includes(s)
+    )
+  }
+
+  return data
+})
+
+// ❌ DELETE
+const deleteReport = async (report:any) => {
+  try {
+    await $fetch('/api/deleteReport', {
+      method: 'POST',
+      body: { id: report.id }
+    })
+
+    await loadReports()
+  } catch (e) {
+    console.error('DELETE ERROR:', e)
+  }
+}
+
+// 🔄 STATUS
+const updateStatus = async (report:any) => {
   try {
     await $fetch('/api/updateStatus', {
       method: 'POST',
@@ -57,114 +97,94 @@ const updateStatus = async (report: Report) => {
         status: report.status
       }
     })
+
+    await loadReports()
   } catch (e) {
-    console.error(e)
+    console.error('STATUS ERROR:', e)
   }
 }
 
-onMounted(async () => {
-  const dep = localStorage.getItem('department')
+// ✅ TASK TOGGLE
+const toggleTask = async (report:any, index:number) => {
 
-  if (!dep) {
-    navigateTo('/reports')
+  if (!report.tasks || !report.tasks[index]) {
+    console.error('TASK ERROR:', report)
     return
   }
 
-  department.value = dep
-  await loadReports()
-})
+  const task = report.tasks[index]
 
-/* 🔥 FILTER */
-const departmentReports = computed(() => {
-  let filtered = reports.value.filter(
-      r => r.department === department.value
-  )
+  try {
+    await $fetch('/api/updateTask', {
+      method: 'POST',
+      body: {
+        reportId: report.id,
+        taskIndex: index,
+        done: task.done
+      }
+    })
 
-  if (search.value.length >= 2) {
-    const s = search.value.toLowerCase()
+    await loadReports()
 
-    filtered = filtered.filter(r =>
-        r.user.toLowerCase().includes(s) ||
-        r.description.toLowerCase().includes(s)
-    )
+  } catch (e) {
+    console.error('TASK UPDATE ERROR:', e)
   }
-
-  return filtered
-})
-
-const logout = () => {
-  localStorage.removeItem('department')
-  navigateTo('/')
 }
 
-/* 🔥 NORMALIZACJA */
-const normalizeStatus = (status: string) => {
-  const s = status?.trim().toLowerCase()
-
-  if (['new', 'nowy'].includes(s)) return 'new'
-  if (['done', 'zrobiony'].includes(s)) return 'done'
-  if (['failed', 'zakończony', 'zakonczony'].includes(s)) return 'failed'
-
-  return 'new'
+// 🔥 LOGOUT
+const handleLogout = async () => {
+  await logout()
+  await navigateTo('/')
 }
 
-/* 🔥 META */
-const getStatusMeta = (status: string) => {
-  const s = normalizeStatus(status)
-
-  switch (s) {
-    case 'new':
-      return {
-        class: 'bg-red-100 text-red-700',
-        icon: '🔴'
-      }
-    case 'done':
-      return {
-        class: 'bg-green-100 text-green-700',
-        icon: '🟢'
-      }
-    default:
-      return {
-        class: 'bg-red-100 text-red-700',
-        icon: '🔴'
-      }
-  }
+// 🎨 STATUS STYLE
+const getStatusMeta = (status:string) => {
+  return status === 'done'
+      ? 'bg-green-100 text-green-700'
+      : 'bg-red-100 text-red-700'
 }
 </script>
 
 <template>
   <div class="min-h-screen bg-gradient-to-br from-gray-100 to-gray-200">
+
     <div class="max-w-6xl mx-auto px-4 py-8">
 
       <!-- HEADER -->
       <div class="sticky top-0 z-10 backdrop-blur bg-white/70 rounded-xl px-6 py-4 mb-6 shadow-sm flex justify-between items-center">
-        <h1 class="text-2xl font-bold tracking-tight">
+
+        <h1 class="text-2xl font-bold">
           Raporty:
-          <span class="text-red-600">{{ department }}</span>
+          <span class="text-red-600">
+            {{ user?.department }}
+          </span>
         </h1>
 
         <button
-            @click="logout"
-            class="text-sm text-red-500 hover:text-red-700 transition"
+            @click="handleLogout"
+            class="text-sm text-red-500 hover:text-red-700"
         >
           Wyloguj
         </button>
+
       </div>
 
       <!-- SEARCH -->
       <div class="flex flex-col md:flex-row gap-4 mb-6">
+
         <input
             v-model="search"
             placeholder="🔍 Szukaj (min. 2 znaki)..."
-            class="flex-1 p-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-red-500 shadow-sm"
+            class="flex-1 p-3 rounded-xl border focus:ring-2 focus:ring-red-500"
         />
 
         <NuxtLink
             to="/reports/create"
-            class="bg-red-600 hover:bg-red-700 text-white px-5 py-3 rounded-xl shadow transition font-medium text-center"
+            class="bg-red-600 hover:bg-red-700 text-white px-5 py-3 rounded-xl text-center"
         >
           + Dodaj raport
         </NuxtLink>
+
       </div>
 
       <!-- LIST -->
@@ -173,79 +193,114 @@ const getStatusMeta = (status: string) => {
         <div
             v-for="report in departmentReports"
             :key="report.id"
-            class="bg-white rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-1 transition p-6 border border-gray-100"
+            class="bg-white rounded-2xl shadow p-6 hover:shadow-xl transition"
         >
 
           <!-- TOP -->
           <div class="flex justify-between items-start mb-4">
+
             <div>
               <h2 class="font-semibold text-lg">
-                {{ report.date }} • {{ report.shift }}
+                {{ report.date }} • Zmiana {{ report.shift }}
               </h2>
 
-              <p class="text-sm text-gray-500 mt-1">
+              <p class="text-sm text-gray-500">
                 {{ report.user }}
               </p>
             </div>
 
-            <!-- 🔥 STATUS SELECT -->
-            <select
-                v-model="report.status"
-                @change="updateStatus(report)"
-                class="  p-2 text-xs rounded-lg font-semibold shadow-sm cursor-pointer outline-none"
-                :class="getStatusMeta(report.status).class"
-            >
-              <option value="new" disabled>🔴 Nowy</option>
-              <option value="done">🟢 Zrobiony</option>
-            </select>
+            <!-- STATUS -->
+            <div class="relative">
+
+              <div
+                  @click.stop="openStatusId = openStatusId === report.id ? null : report.id"
+                  class="cursor-pointer px-3 py-1 rounded-lg text-xs font-semibold"
+                  :class="getStatusMeta(report.status)"
+              >
+                {{ report.status === 'done' ? '🟢 Zrobiony' : '🔴 Nowy' }}
+              </div>
+
+              <div
+                  v-if="openStatusId === report.id"
+                  class="absolute right-0 mt-2 w-40 bg-white border rounded-lg shadow-lg z-20"
+              >
+
+                <div
+                    @click="() => {
+                    report.status = 'new'
+                    updateStatus(report)
+                    openStatusId = null
+                  }"
+                    class="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm"
+                >
+                  🔴 Nowy
+                </div>
+
+                <div
+                    @click="() => {
+                    report.status = 'done'
+                    updateStatus(report)
+                    openStatusId = null
+                  }"
+                    class="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm"
+                >
+                  🟢 Zrobiony
+                </div>
+
+              </div>
+
+            </div>
+
           </div>
 
-          <!-- DESC -->
+          <!-- OPIS -->
           <div
-              class="text-gray-700 mb-5 text-sm leading-relaxed bg-gray-50 p-4 rounded-lg"
+              class="text-gray-700 mb-5 text-sm bg-gray-50 p-4 rounded"
               v-html="report.description"
           ></div>
 
-          <!-- TASKS -->
+          <!-- TASKI -->
           <div class="text-sm text-gray-500 mb-2">
-            Zostało do zrobienia
+            Zadania:
           </div>
 
-          <div class="space-y-3">
+          <div class="space-y-2">
+
             <div
-                v-for="task in report.tasks"
+                v-for="(task, index) in report.tasks || []"
                 :key="task.text"
-                class="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition"
+                class="flex items-center gap-3"
             >
+
               <input
                   type="checkbox"
                   v-model="task.done"
-                  class="w-4 h-4 accent-red-600 cursor-pointer"
+                  @change="toggleTask(report, index)"
+                  class="accent-red-600"
               />
 
-              <span
-                  :class="task.done
-                  ? 'line-through text-gray-400'
-                  : 'text-gray-800'"
-                  class="text-sm"
-              >
+              <span :class="task.done ? 'line-through text-gray-400' : ''">
                 {{ task.text }}
               </span>
+
             </div>
+
           </div>
 
           <!-- ACTION -->
           <div class="flex justify-between items-center mt-6">
+
             <span class="text-xs text-gray-400">
               ID: {{ report.id }}
             </span>
 
             <button
                 @click="deleteReport(report)"
-                class="text-sm text-red-500 hover:text-red-700 transition"
+                class="text-sm text-red-500 hover:text-red-700"
             >
               Usuń
             </button>
+
           </div>
 
         </div>
@@ -259,6 +314,8 @@ const getStatusMeta = (status: string) => {
         </div>
 
       </div>
+
     </div>
+
   </div>
 </template>

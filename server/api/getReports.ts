@@ -15,7 +15,20 @@ export default defineEventHandler(async () => {
             user: r.pracownik,
             description: r.opis,
             department: r.dzial,
-            tasks: JSON.parse(r.tasks || '[]')
+
+            // 🔥 POPRAWIONE TASKI
+            tasks: (() => {
+                try {
+                    return typeof r.tasks === 'string'
+                        ? JSON.parse(r.tasks)
+                        : r.tasks || []
+                } catch {
+                    return []
+                }
+            })(),
+
+            // 🔥 status (żeby nie znikał)
+            status: r.status || 'new'
         }))
 
     } catch (err) {

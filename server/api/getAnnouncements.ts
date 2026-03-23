@@ -2,8 +2,9 @@ import { db } from '~/server/utils/db'
 
 export default defineEventHandler(async () => {
     try {
-        const [rows]: any = await db.execute(
-            "SELECT * FROM announcements ORDER BY timestamp DESC"
+
+        const [rows] = await db.execute(
+            "SELECT id, text, author, timestamp, department FROM announcements ORDER BY timestamp DESC"
         )
 
         return rows

@@ -1,29 +1,33 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue"
+import { useAuth } from '~/composables/useAuth'
+
+// 🔐 AUTH
+const { user } = useAuth()
 
 type Announcement = {
   id: number
   text: string
   timestamp: number
   author: string
+  department: string // 👈 NOWE
 }
 
 const announcements = ref<Announcement[]>([])
 
-const password = ref("")
-const logged = ref(false)
-
 const author = ref("Kierownik")
 const text = ref("")
+const department = ref("all") // 👈 NOWE
 
 const successMessage = ref("")
 
-// 🔥 NOWE - POWITANIE
+// 🔥 POWITANIE
 const welcomeMessage = ref("")
 
 const editingId = ref<number | null>(null)
 const editText = ref("")
 const editAuthor = ref("")
+const editDepartment = ref("all") // 👈 NOWE
 
 // 🔥 LOAD
 const loadAnnouncements = async () => {
@@ -34,33 +38,32 @@ const loadAnnouncements = async () => {
   }
 }
 
-onMounted(loadAnnouncements)
+// 🔒 BLOKADA + INIT
+onMounted(() => {
 
-// 🔐 LOGIN
-const login = async () => {
-  const res:any = await $fetch("/api/adminLogin",{
-    method:"POST",
-    body:{ password:password.value }
-  })
-
-  if(res.success){
-    logged.value = true
-
-    // 🔥 POWITANIE
-    const hour = new Date().getHours()
-
-    if(hour < 12) welcomeMessage.value = "☀️ Dzień dobry!"
-    else if(hour < 18) welcomeMessage.value = "👋 Witamy ponownie!"
-    else welcomeMessage.value = "🌙 Dobry wieczór!"
-
-    setTimeout(() => {
-      welcomeMessage.value = ""
-    }, 3000)
-
-  }else{
-    alert("Błędne hasło")
+  if (!user.value) {
+    navigateTo('/')
+    return
   }
-}
+
+  if (user.value.role !== 'manager') {
+    navigateTo('/')
+    return
+  }
+
+  loadAnnouncements()
+
+  // 🔥 POWITANIE
+  const hour = new Date().getHours()
+
+  if(hour < 12) welcomeMessage.value = "☀️ Dzień dobry!"
+  else if(hour < 18) welcomeMessage.value = "👋 Witamy ponownie!"
+  else welcomeMessage.value = "🌙 Dobry wieczór!"
+
+  setTimeout(() => {
+    welcomeMessage.value = ""
+  }, 3000)
+})
 
 // ➕ ADD
 const addAnnouncement = async () => {
@@ -74,11 +77,13 @@ const addAnnouncement = async () => {
       body:{
         text: text.value,
         author: author.value,
-        timestamp: Date.now()
+        timestamp: Date.now(),
+        department: department.value // 👈 NOWE
       }
     })
 
     text.value = ""
+    department.value = "all"
 
     await loadAnnouncements()
 
@@ -102,7 +107,6 @@ const deleteAnnouncement = async (item: Announcement) => {
     })
 
     await loadAnnouncements()
-
     successMessage.value = "🗑 Usunięto ogłoszenie"
 
   } catch(err){
@@ -117,6 +121,7 @@ const startEdit = (item: Announcement) => {
   editingId.value = item.id
   editText.value = item.text
   editAuthor.value = item.author
+  editDepartment.value = item.department || "all"
 }
 
 const saveEdit = async (item: Announcement) => {
@@ -128,12 +133,12 @@ const saveEdit = async (item: Announcement) => {
       body:{
         id: item.id,
         text: editText.value,
-        author: editAuthor.value
+        author: editAuthor.value,
+        department: editDepartment.value // 👈 NOWE
       }
     })
 
     editingId.value = null
-
     await loadAnnouncements()
 
     successMessage.value = "✏️ Zaktualizowano ogłoszenie"
@@ -158,150 +163,124 @@ const formatDate = (timestamp:number) => {
 
 <template>
 
-  <main class="min-h-screen bg-gray-100 px-4 sm:px-6 lg:px-8 py-10">
+  <main class="min-h-screen bg-gray-100 px-4 py-10">
 
-    <!-- 🔥 TOAST POWITALNY -->
+    <!-- 🔥 POWITANIE -->
     <div
         v-if="welcomeMessage"
-        class="fixed top-6 left-1/2 -translate-x-1/2 bg-white border border-gray-200 shadow-lg px-6 py-3 rounded-xl z-50 animate-fade"
+        class="fixed top-6 left-1/2 -translate-x-1/2 bg-white shadow px-6 py-3 rounded-xl z-50"
     >
-      <span class="text-sm font-medium text-gray-800">
-        {{ welcomeMessage }}
-      </span>
+      {{ welcomeMessage }}
     </div>
 
     <div class="max-w-3xl mx-auto">
 
       <!-- HEADER -->
-      <div class="text-center mb-8 sm:mb-10">
-        <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold">
-          Panel kierownika
+      <div class="text-center mb-8">
+        <h1 class="text-3xl font-bold">
+          🧑‍💼 Panel kierownika
         </h1>
       </div>
 
-      <!-- LOGIN -->
-      <div v-if="!logged" class="bg-white p-6 sm:p-8 rounded-2xl shadow-md">
+      <!-- ADD -->
+      <div class="bg-white p-6 rounded-xl shadow mb-6">
+
+        <div v-if="successMessage" class="mb-3 text-green-600">
+          {{ successMessage }}
+        </div>
 
         <input
-            v-model="password"
-            type="password"
-            placeholder="Hasło"
-            @keydown.enter="login"
-            class="border border-gray-300 focus:border-red-500 focus:ring-1 focus:ring-red-500 p-3 w-full mb-4 rounded-lg text-sm sm:text-base"
+            v-model="author"
+            class="border p-2 w-full mb-2 rounded"
+        />
+
+        <!-- 👇 WYBÓR DZIAŁU -->
+        <select
+            v-model="department"
+            class="border p-2 w-full mb-2 rounded"
+        >
+          <option value="all">Wszyscy</option>
+          <option value="dostawy">Dostawy</option>
+          <option value="magazyn">Magazyn</option>
+          <option value="spedycja">Spedycja</option>
+        </select>
+
+        <textarea
+            v-model="text"
+            placeholder="Treść ogłoszenia..."
+            class="border p-2 w-full mb-3 rounded"
         />
 
         <button
-            @click="login"
-            class="w-full bg-red-600 hover:bg-red-700 transition text-white py-3 rounded-lg text-sm sm:text-base font-medium"
+            @click="addAnnouncement"
+            class="bg-red-600 text-white px-4 py-2 rounded"
         >
-          Zaloguj
+          Dodaj ogłoszenie
         </button>
 
       </div>
 
-      <!-- PANEL -->
-      <div v-else class="space-y-6">
+      <!-- LISTA -->
+      <div class="space-y-4">
 
-        <!-- ADD -->
-        <div class="bg-white p-5 sm:p-6 rounded-2xl shadow-md">
+        <div
+            v-for="item in announcements"
+            :key="item.id"
+            class="bg-white p-4 rounded-xl shadow"
+        >
 
-          <div v-if="successMessage" class="mb-3 text-green-600 text-sm sm:text-base">
-            {{ successMessage }}
-          </div>
+          <!-- VIEW -->
+          <div v-if="editingId !== item.id">
 
-          <input
-              v-model="author"
-              placeholder="Autor"
-              class="border border-gray-300 focus:border-red-500 focus:ring-1 focus:ring-red-500 p-2.5 w-full mb-2 rounded-lg text-sm sm:text-base"
-          />
+            <p class="mb-2">{{ item.text }}</p>
 
-          <textarea
-              v-model="text"
-              placeholder="Treść ogłoszenia..."
-              rows="4"
-              class="border border-gray-300 focus:border-red-500 focus:ring-1 focus:ring-red-500 p-2.5 w-full mb-3 rounded-lg text-sm sm:text-base"
-          />
+            <div class="text-sm text-gray-500 mb-3">
+              {{ formatDate(item.timestamp) }} • {{ item.author }}
 
-          <button
-              @click="addAnnouncement"
-              class="bg-red-600 hover:bg-red-700 transition text-white px-4 py-2 rounded-lg text-sm sm:text-base"
-          >
-            Dodaj
-          </button>
+              <!-- 👇 BADGE -->
+              <span class="ml-2 text-xs bg-gray-200 px-2 py-1 rounded">
+                {{ item.department }}
+              </span>
+            </div>
 
-        </div>
+            <div class="flex gap-4 text-sm">
 
-        <!-- LISTA -->
-        <div class="space-y-4">
+              <button @click="startEdit(item)" class="text-blue-600">
+                Edytuj
+              </button>
 
-          <div
-              v-for="item in announcements"
-              :key="item.id"
-              class="bg-white p-4 sm:p-5 rounded-2xl shadow-md hover:shadow-lg transition"
-          >
-
-            <!-- VIEW -->
-            <div v-if="editingId !== item.id">
-
-              <p class="text-sm sm:text-base text-gray-800 mb-2 whitespace-pre-line">
-                {{ item.text }}
-              </p>
-
-              <div class="text-xs sm:text-sm text-gray-500 mb-3">
-                {{ formatDate(item.timestamp) }} • {{ item.author }}
-              </div>
-
-              <div class="flex gap-4 text-sm">
-
-                <button
-                    @click="startEdit(item)"
-                    class="text-blue-600 hover:underline"
-                >
-                  Edytuj
-                </button>
-
-                <button
-                    @click="deleteAnnouncement(item)"
-                    class="text-red-600 hover:underline"
-                >
-                  Usuń
-                </button>
-
-              </div>
+              <button @click="deleteAnnouncement(item)" class="text-red-600">
+                Usuń
+              </button>
 
             </div>
 
-            <!-- EDIT -->
-            <div v-else>
+          </div>
 
-              <input
-                  v-model="editAuthor"
-                  class="border border-gray-300 p-2.5 w-full mb-2 rounded-lg text-sm sm:text-base"
-              />
+          <!-- EDIT -->
+          <div v-else>
 
-              <textarea
-                  v-model="editText"
-                  rows="4"
-                  class="border border-gray-300 p-2.5 w-full mb-3 rounded-lg text-sm sm:text-base"
-              />
+            <input v-model="editAuthor" class="border p-2 w-full mb-2 rounded" />
 
-              <div class="flex gap-4 text-sm">
+            <!-- 👇 EDYCJA DZIAŁU -->
+            <select v-model="editDepartment" class="border p-2 w-full mb-2 rounded">
+              <option value="all">Wszyscy</option>
+              <option value="dostawy">Dostawy</option>
+              <option value="magazyn">Magazyn</option>
+              <option value="spedycja">Spedycja</option>
+            </select>
 
-                <button
-                    @click="saveEdit(item)"
-                    class="text-green-600 hover:underline"
-                >
-                  Zapisz
-                </button>
+            <textarea v-model="editText" class="border p-2 w-full mb-3 rounded" />
 
-                <button
-                    @click="editingId=null"
-                    class="text-gray-600 hover:underline"
-                >
-                  Anuluj
-                </button>
+            <div class="flex gap-4 text-sm">
 
-              </div>
+              <button @click="saveEdit(item)" class="text-green-600">
+                Zapisz
+              </button>
+
+              <button @click="editingId=null" class="text-gray-600">
+                Anuluj
+              </button>
 
             </div>
 
@@ -312,16 +291,6 @@ const formatDate = (timestamp:number) => {
       </div>
 
     </div>
+
   </main>
 </template>
-
-<style>
-@keyframes fade {
-  from { opacity: 0; transform: translate(-50%, -10px); }
-  to { opacity: 1; transform: translate(-50%, 0); }
-}
-
-.animate-fade {
-  animation: fade 0.3s ease;
-}
-</style>

@@ -2,13 +2,13 @@ import { db } from '~/server/utils/db'
 
 export default defineEventHandler(async (event) => {
 
-    const { id, text, author } = await readBody(event)
+    const { id, text, author, department } = await readBody(event)
 
     try {
 
         await db.execute(
-            "UPDATE announcements SET text = ?, author = ? WHERE id = ?",
-            [text, author, id]
+            "UPDATE announcements SET text = ?, author = ?, department = ? WHERE id = ?",
+            [text, author, department, id]
         )
 
         return { success: true }

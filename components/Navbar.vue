@@ -1,154 +1,170 @@
 <script setup lang="ts">
-
 import { useRoute } from 'vue-router'
-import { ref } from "vue"
+import { ref, computed } from "vue"
+import { useAuth } from '~/composables/useAuth'
 
-const mobileOpen = ref(false)
-
+const { user, login, logout } = useAuth()
 const route = useRoute()
 
-const menu = [
-  { name: "Home", path: "/" },
-  { name: "Reports", path: "/reports" },
-]
+const selectedDepartment = ref("")
+const passwordInput = ref("")
+const errorMsg = ref("")
+const mobileOpen = ref(false)
 
-const managerMenu = {
-  name: "Manager Panel",
-  path: "/manager"
+// MENU (ROLE BASED)
+const menu = computed(() => {
+
+  if (user.value?.role === 'manager') {
+    return [
+      { name: "Manager", path: "/manager" }
+    ]
+  }
+
+  if (user.value) {
+    return [
+      { name: "Dashboard", path: "/dashboard" },
+      { name: "Raporty", path: "/reports" }
+    ]
+  }
+
+  return [
+    { name: "Strona główna", path: "/" }
+  ]
+})
+
+// LOGIN
+const handleLogin = async () => {
+
+  errorMsg.value = ""
+
+  if (!selectedDepartment.value || !passwordInput.value) {
+    errorMsg.value = "Uzupełnij dane"
+    return
+  }
+
+  const ok = await login(selectedDepartment.value, passwordInput.value)
+
+  if (!ok) {
+    errorMsg.value = "Złe hasło"
+    return
+  }
+
+  passwordInput.value = ""
+
+  if (user.value?.role === 'manager') {
+    await navigateTo('/manager')
+  } else {
+    await navigateTo('/dashboard')
+  }
 }
 
+// LOGOUT
+const handleLogout = async () => {
+  await logout()
+  await navigateTo('/', { replace: true })
+}
 </script>
 
 <template>
-  <header class="sticky top-0 z-50 backdrop-blur-lg bg-white/70 border-b border-gray-200 shadow-sm">
+  <header class="sticky top-0 z-50 bg-white/80 backdrop-blur border-b shadow-sm">
 
-    <nav class="max-w-7xl mx-auto flex items-center justify-between px-4 sm:px-6 py-3">
+    <nav class="max-w-7xl mx-auto flex items-center justify-between px-4 py-3">
 
-      <!-- LEFT (desktop menu) -->
-      <div class="hidden md:flex items-center gap-6 lg:gap-8 text-gray-700 font-medium text-base lg:text-lg">
-
-        <NuxtLink
-            v-for="item in menu"
-            :key="item.path"
-            :to="item.path"
-            class="relative group transition"
-        >
-          <span
-              :class="[
-              route.path === item.path ? 'text-red-600' : 'hover:text-red-600'
-            ]"
-          >
-            {{ item.name }}
-          </span>
-
-          <span
-              class="absolute left-0 -bottom-1 h-[2px] w-0 bg-red-600 transition-all duration-300 group-hover:w-full"
-              :class="{ 'w-full': route.path === item.path }"
-          />
-        </NuxtLink>
-
+      <!-- LEFT MENU -->
+      <div class="hidden md:flex gap-6">
       </div>
 
-      <!-- MOBILE hamburger -->
-      <button
-          @click="mobileOpen = !mobileOpen"
-          class="md:hidden text-2xl"
-      >
+      <!-- MOBILE BUTTON -->
+      <button @click="mobileOpen = !mobileOpen" class="md:hidden text-2xl">
         ☰
       </button>
 
       <!-- LOGO -->
-      <NuxtLink
-          to="/"
-          class="md:absolute md:left-1/2 md:-translate-x-1/2 flex items-center"
-      >
-        <img
-            src="/logo23.png"
-            alt="Raport System"
-            class="h-10 sm:h-12 object-contain transition duration-300 hover:scale-110 hover:drop-shadow-lg"
-        />
+      <NuxtLink to="/" class="md:absolute ">
+        <img src="/logo23.png" class="h-10 hover:scale-105 transition" />
       </NuxtLink>
 
       <!-- RIGHT -->
-      <div class="hidden md:flex items-center">
+      <div class="hidden md:flex items-center gap-4">
 
-        <NuxtLink
-            :to="managerMenu.path"
-            class="relative px-3 sm:px-4 py-2 rounded-lg border border-gray-200
-          hover:border-red-500 hover:text-red-600
-          transition duration-300 overflow-hidden group text-sm sm:text-base"
-        >
-          <span class="relative z-10">
-            {{ managerMenu.name }}
-          </span>
+        <!-- LOGIN -->
+        <div v-if="!user" class="flex flex-col gap-1">
 
-          <span
-              class="absolute inset-0 bg-red-50 opacity-0 group-hover:opacity-100 transition duration-300"
-          />
-        </NuxtLink>
+          <div class="flex items-center gap-2">
+
+            <select v-model="selectedDepartment" class="border px-2 py-1 rounded text-sm">
+              <option disabled value="">Dział</option>
+              <option value="Magazyn">Magazyn</option>
+              <option value="Dostawy">Dostawy</option>
+              <option value="Spedycja">Spedycja</option>
+              <option value="Kierownik">Kierownik</option>
+            </select>
+
+            <input
+                v-model="passwordInput"
+                type="password"
+                placeholder="hasło"
+                class="border px-2 py-1 rounded w-24 text-sm"
+                @keyup.enter="handleLogin"
+            />
+
+            <button
+                @click="handleLogin"
+                class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition text-sm"
+            >
+              Wejdź
+            </button>
+
+          </div>
+
+          <!-- ERROR -->
+          <div v-if="errorMsg" class="text-xs text-red-500 ml-1">
+            {{ errorMsg }}
+          </div>
+
+        </div>
+
+        <!-- USER -->
+        <div v-else class="flex items-center gap-3">
+
+          <div class="text-sm text-right">
+            <p class="font-medium text-gray-700">
+              {{ user.department }}
+            </p>
+            <p class="text-xs text-gray-400">
+              {{ user.role }}
+            </p>
+          </div>
+
+          <div class="w-9 h-9 bg-gray-200 rounded-full flex items-center justify-center">
+            👤
+          </div>
+
+          <button
+              @click="handleLogout"
+              class="text-red-500 hover:underline text-sm"
+          >
+            Wyloguj
+          </button>
+
+        </div>
 
       </div>
 
     </nav>
 
-    <!-- MOBILE MENU OVERLAY -->
-    <div
-        v-if="mobileOpen"
-        class="fixed inset-0 z-40 md:hidden"
-    >
+    <!-- MOBILE MENU -->
+    <div v-if="mobileOpen" class="md:hidden px-4 pb-4">
 
-      <!-- backdrop -->
-      <div
-          class="absolute inset-0 bg-black/30"
+      <NuxtLink
+          v-for="item in menu"
+          :key="item.path"
+          :to="item.path"
+          class="block py-2 border-b"
           @click="mobileOpen = false"
-      />
-
-      <!-- menu panel -->
-      <div
-          class="absolute top-0 left-0 w-full bg-white shadow-lg p-4 animate-slide-down"
       >
-
-        <!-- TOP BAR -->
-        <div class="flex items-center justify-between mb-4">
-
-          <span class="font-semibold text-black underline ">
-            Menu
-          </span>
-
-          <button
-              @click="mobileOpen = false"
-              class="text-2xl leading-none text-gray-500 hover:text-black transition"
-          >
-            ✕
-          </button>
-
-        </div>
-
-        <!-- MENU -->
-        <div class="flex flex-col gap-3 text-gray-700 font-medium">
-
-          <NuxtLink
-              v-for="item in menu"
-              :key="item.path"
-              :to="item.path"
-              @click="mobileOpen = false"
-              class="py-3 border-b border-gray-100"
-              :class="route.path === item.path ? 'text-red-600' : ''"
-          >
-            {{ item.name }}
-          </NuxtLink>
-
-          <NuxtLink
-              :to="managerMenu.path"
-              @click="mobileOpen = false"
-              class="mt-2 py-3 text-center rounded-lg border border-gray-200 hover:border-red-500 hover:text-red-600"
-          >
-            {{ managerMenu.name }}
-          </NuxtLink>
-
-        </div>
-
-      </div>
+        {{ item.name }}
+      </NuxtLink>
 
     </div>
 

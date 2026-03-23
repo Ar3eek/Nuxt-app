@@ -16,7 +16,7 @@ export default defineNuxtConfig({
     dostawyPassword: process.env.DOSTAWY_PASSWORD,
     magazynPassword: process.env.MAGAZYN_PASSWORD,
     spedycjaPassword: process.env.SPEDYCJA_PASSWORD,
-    adminPassword:process.env.ADMIN_PASSWORD
+    kierownikPassword:process.env.KIEROWNIK_PASSWORD
   },
   nitro: {
     preset: 'vercel'

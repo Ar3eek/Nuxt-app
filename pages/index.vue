@@ -1,206 +1,163 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from "vue"
+import { ref, onMounted, computed, watch } from "vue"
+import {
+  ClipboardList,
+  Settings,
+  Megaphone,
+  CheckCircle,
+  Users
+} from "lucide-vue-next"
 
-type Task = {
-  text: string
-  done: boolean
-  comment: string
-}
+const { user } = useAuth()
 
-type Report = {
-  date: string
-  shift: string
-  description: string
-  department: string
-  user: string
-  tasks: Task[]
-}
-
-// 🔥 DODAJ ID
 type Announcement = {
   id: number
   text: string
   timestamp: number
   author: string
+  department: string
 }
-
-const reports = useState<Report[]>('reports', () => [])
 
 const announcements = ref<Announcement[]>([])
 
-// 🔥 LOAD
 const loadAnnouncements = async () => {
   try {
     announcements.value = await $fetch("/api/getAnnouncements")
   } catch (err) {
-    console.error("Błąd pobierania ogłoszeń:", err)
+    console.error("Błąd ogłoszeń:", err)
   }
 }
 
+// 🔥 LEPSZY REDIRECT (bez flickera)
+watch(user, (val) => {
+  if (val) navigateTo('/dashboard')
+}, { immediate: true })
+
 onMounted(() => {
   loadAnnouncements()
-
-  // 🔥 AUTO REFRESH co 5 sekund
-  setInterval(loadAnnouncements, 5000)
 })
 
-const goToMenu = () => navigateTo('/reports')
+const filteredAnnouncements = computed(() => {
+  if (!user.value?.department) return []
 
-// 📅 FORMAT
-const formatDate = (timestamp:number) => {
-  const date = new Date(timestamp)
-  return date.toLocaleDateString('pl-PL') + " • " +
-      date.toLocaleTimeString('pl-PL',{
-        hour:'2-digit',
-        minute:'2-digit',
-        second:'2-digit'
-      })
-}
-
-// 📋 TASKI
-const todoTasks = computed(() => {
-
-  const tasks: { text: string; department: string; date: string }[] = []
-
-  reports.value.forEach(report => {
-    report.tasks.forEach(task => {
-      if (!task.done) {
-        tasks.push({
-          text: task.text,
-          department: report.department,
-          date: report.date
-        })
-      }
-    })
-  })
-
-  return tasks
+  return announcements.value.filter(a =>
+      a.department === "all" ||
+      a.department.toLowerCase() === user.value.department.toLowerCase()
+  )
 })
+
+const goToReports = () => navigateTo('/reports')
 </script>
 
-
 <template>
+  <main class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-200 py-20 px-6">
 
-  <main class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-200">
+    <div class="max-w-6xl mx-auto space-y-16">
 
-    <!-- HERO -->
+      <!-- 🔴 HERO -->
+      <section class="text-center">
 
-    <section class="max-w-6xl mx-auto px-8 py-20 text-center">
+        <h1 class="text-4xl font-bold text-gray-800 mb-4">
+          System Raportów
+        </h1>
 
-      <h1 class="text-5xl font-bold mb-6 text-gray-800">
-        System Raportów
-      </h1>
+        <p class="text-lg text-gray-600 max-w-2xl mx-auto mb-6">
+          Platforma do zarządzania raportami, zadaniami i komunikacją w zespole.
+        </p>
 
-      <p class="text-lg text-gray-600 max-w-2xl mx-auto mb-10">
-        Platforma do raportowania pracy zespołu. Sprawdzaj zadania,
-        komunikuj się z kolegami i monitoruj postęp pracy.
-      </p>
+        <p class="text-sm text-gray-500 max-w-xl mx-auto mb-10">
+          Proste raportowanie pracy, kontrola zadań i szybki dostęp do informacji
+          dla całego zespołu.
+        </p>
 
-      <button
-          @click="goToMenu"
-          class="px-8 py-3 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition shadow-lg"
-      >
-        Przejdź do raportów
-      </button>
-
-    </section>
-
-
-    <!-- WAŻNE INFORMACJE -->
-
-    <section class="max-w-6xl mx-auto px-8 mb-16">
-
-      <h2 class="text-2xl font-sans mb-6 text-red-700">
-        ⚠ Ważne informacje
-      </h2>
-
-      <div class="space-y-4">
-
-        <div
-            v-for="(item,index) in announcements"
-            :key="index"
-            class="bg-red-50 border-l-4 border-red-600 p-5 rounded shadow"
+        <button
+            @click="goToReports"
+            class="bg-red-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-red-700 transition hover:scale-[1.02]"
         >
+          Rozpocznij pracę
+        </button>
 
-          <p class="text-gray-800 font-medium mb-2">
-            {{ item.text }}
+      </section>
+
+      <!-- 🧩 FUNKCJE -->
+      <section class="grid md:grid-cols-3 gap-6">
+
+        <div class="bg-white p-6 rounded-2xl shadow hover:shadow-md transition">
+          <ClipboardList class="w-10 h-10 text-red-500 mb-3" />
+          <h3 class="font-semibold text-gray-800 mb-2">Raporty</h3>
+          <p class="text-sm text-gray-600">
+            Dodawaj i przeglądaj raporty z wykonanej pracy w uporządkowany sposób.
           </p>
+        </div>
 
-          <div class="text-sm text-gray-500">
-            {{ formatDate(item.timestamp) }} • {{ item.author }}
+        <div class="bg-white p-6 rounded-2xl shadow hover:shadow-md transition">
+          <CheckCircle class="w-10 h-10 text-green-500 mb-3" />
+          <h3 class="font-semibold text-gray-800 mb-2">Zadania</h3>
+          <p class="text-sm text-gray-600">
+            Monitoruj postęp i kontroluj realizację zadań w czasie rzeczywistym.
+          </p>
+        </div>
+
+        <div class="bg-white p-6 rounded-2xl shadow hover:shadow-md transition">
+          <Megaphone class="w-10 h-10 text-blue-500 mb-3" />
+          <h3 class="font-semibold text-gray-800 mb-2">Ogłoszenia</h3>
+          <p class="text-sm text-gray-600">
+            Otrzymuj ważne komunikaty dopasowane do Twojego działu.
+          </p>
+        </div>
+
+      </section>
+
+      <!-- ⚙️ JAK TO DZIAŁA -->
+      <section class="bg-white rounded-2xl shadow p-8">
+
+        <div class="flex items-center gap-3 mb-6">
+          <Settings class="w-6 h-6 text-gray-600" />
+          <h2 class="text-xl font-semibold text-gray-800">
+            Jak działa system?
+          </h2>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-6 text-sm text-gray-600">
+
+          <div>
+            <span class="font-semibold text-gray-800">1. Dodaj raport</span><br />
+            Po zakończeniu pracy uzupełnij raport z wykonanych zadań.
+          </div>
+
+          <div>
+            <span class="font-semibold text-gray-800">2. Zarządzaj zadaniami</span><br />
+            Śledź postęp i oznaczaj zadania jako wykonane.
+          </div>
+
+          <div>
+            <span class="font-semibold text-gray-800">3. Bądź na bieżąco</span><br />
+            Sprawdzaj ogłoszenia i komunikaty zespołu.
           </div>
 
         </div>
 
-      </div>
+      </section>
 
-    </section>
+      <!-- 👥 O SYSTEMIE -->
+      <section class="bg-white rounded-2xl shadow p-8">
 
+        <div class="flex items-center gap-3 mb-4">
+          <Users class="w-6 h-6 text-gray-600" />
+          <h2 class="text-xl font-semibold text-gray-800">
+            O systemie
+          </h2>
+        </div>
 
-    <!-- OGŁOSZENIA ZESPOŁU -->
-
-    <section class="max-w-6xl mx-auto px-8 mb-16">
-
-      <h2 class="text-2xl font-sans mb-6">
-        Ogłoszenia zespołu
-      </h2>
-
-      <div class="bg-white p-6 rounded-xl shadow">
-
-        <p class="text-gray-700">
-          Pamiętajcie o uzupełnianiu raportów po każdej zmianie.
-          Jeśli pojawią się problemy lub opóźnienia – wpisujcie je w komentarzach.
+        <p class="text-sm text-gray-600 leading-relaxed">
+          System Raportów został zaprojektowany, aby uprościć codzienną pracę zespołu.
+          Pozwala na szybkie raportowanie działań, lepszą organizację zadań oraz
+          skuteczną komunikację między pracownikami i kierownictwem.
         </p>
 
-      </div>
+      </section>
 
-    </section>
-
-
-    <!-- FUNKCJE -->
-
-    <section class="max-w-6xl mx-auto px-8 pb-20">
-
-      <h2 class="text-2xl font-bold mb-6 text-center">
-        Funkcje systemu
-      </h2>
-
-      <div class="grid md:grid-cols-3 gap-8">
-
-        <div class="bg-white p-8 rounded-xl shadow hover:shadow-lg transition">
-          <h2 class="text-xl font-semibold mb-3 text-gray-800">
-            Tworzenie raportów
-          </h2>
-          <p class="text-gray-600">
-            Szybko twórz raporty z wykonanych zadań
-            i przekazuj informacje kolegom z zespołu.
-          </p>
-        </div>
-
-        <div class="bg-white p-8 rounded-xl shadow hover:shadow-lg transition">
-          <h2 class="text-xl font-semibold mb-3 text-gray-800">
-            Lista zadań
-          </h2>
-          <p class="text-gray-600">
-            Każdy raport zawiera checklistę zadań,
-            które można oznaczyć jako wykonane.
-          </p>
-        </div>
-
-        <div class="bg-white p-8 rounded-xl shadow hover:shadow-lg transition">
-          <h2 class="text-xl font-semibold mb-3 text-gray-800">
-            Komunikacja zespołu
-          </h2>
-          <p class="text-gray-600">
-            Dodawaj komentarze i informacje,
-            aby inni pracownicy wiedzieli co zostało wykonane.
-          </p>
-        </div>
-
-      </div>
-
-    </section>
+    </div>
 
   </main>
-
 </template>

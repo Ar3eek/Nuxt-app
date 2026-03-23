@@ -1,32 +1,16 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { QuillEditor } from '@vueup/vue-quill'
-import '@vueup/vue-quill/dist/vue-quill.snow.css'
 
-type Task = {
-  text: string
-  done: boolean
-}
+const { user } = useAuth()
 
-type Report = {
-  date: string
-  shift: string
-  description: string
-  department: string
-  user: string
-  tasks: Task[]
-}
-
-const goBack = () => navigateTo('/reports/list')
-
-/* pola raportu */
-
+// 📅 podstawowe dane
 const date = ref(new Date().toISOString().split('T')[0])
 const shift = ref('1')
 const description = ref('')
-const department = ref('')
 
-/* użytkownicy */
+// 👤 autor
+const selectedUser = ref('')
+const newUser = ref('')
 
 const users = ref([
   'Paweł Kozak',
@@ -35,31 +19,19 @@ const users = ref([
   'Marcin Bernat',
 ])
 
-const selectedUser = ref('')
-const newUser = ref('')
-
-const shifts = ['1','2','3']
-
-/* zadania */
-
-const tasks = ref<Task[]>([])
+// 📋 zadania
+const tasks = ref<{ text: string, done: boolean }[]>([])
 const newTask = ref('')
 
+// 🔐 zabezpieczenie
 onMounted(() => {
-
-  const dep = localStorage.getItem('department')
-
-  if(!dep){
+  if (!user.value) {
     navigateTo('/reports')
-    return
   }
-
-  department.value = dep
-
 })
 
+// ➕ dodaj task
 const addTask = () => {
-
   const text = newTask.value.trim()
   if (!text) return
 
@@ -69,37 +41,27 @@ const addTask = () => {
   })
 
   newTask.value = ''
-
 }
 
-const removeTask = (index:number) => {
-  tasks.value.splice(index,1)
+// ❌ usuń task
+const removeTask = (index: number) => {
+  tasks.value.splice(index, 1)
 }
 
+// ➕ dodaj usera
 const addUser = () => {
-
   const name = newUser.value.trim()
   if (!name) return
 
   users.value.push(name)
   selectedUser.value = name
   newUser.value = ''
-
 }
 
-const resetForm = () => {
+// 💾 zapis
+const save = async () => {
 
-  date.value = new Date().toISOString().split('T')[0]
-  shift.value = '1'
-  description.value = ''
-  selectedUser.value = ''
-  tasks.value = []
-
-}
-
-const addReport = async () => {
-
-  if (!selectedUser.value) {
+  if (!selectedUser.value || selectedUser.value === 'new') {
     alert('Wybierz autora raportu')
     return
   }
@@ -109,99 +71,78 @@ const addReport = async () => {
     return
   }
 
-  const newReport: Report = {
-    date: date.value,
-    shift: shift.value,
-    description: description.value,
-    department: department.value,
-    user: selectedUser.value,
-    tasks: tasks.value.map(t => ({ ...t }))
-  }
+  await $fetch('/api/saveReport', {
+    method: 'POST',
+    body: {
+      date: date.value,
+      shift: shift.value,
+      description: description.value,
+      department: user.value.department,
+      user: selectedUser.value,
+      tasks: tasks.value
+    }
+  })
 
-  try {
-
-    await $fetch('/api/saveReport', {
-      method: 'POST',
-      body: newReport
-    })
-
-    resetForm()
-
-    navigateTo('/reports/list')
-
-  } catch (error) {
-
-    console.error(error)
-    alert('Błąd zapisu raportu')
-
-  }
-
+  navigateTo('/reports/list')
 }
 </script>
 
 <template>
+  <div class="min-h-screen bg-gray-100 flex justify-center items-start p-4">
 
-  <div class="min-h-screen bg-gray-100 flex justify-center items-center p-4">
+    <div class="bg-white p-6 sm:p-8 rounded-xl shadow w-full max-w-3xl">
 
-    <div class="bg-white p-10 rounded-xl shadow w-full max-w-3xl">
-
-      <button
-          @click="goBack"
-          class="text-gray-500 hover:text-red-600 mb-4"
-      >
-        ← Wróć
-      </button>
-
-      <h1 class="text-3xl font-bold mb-2">
-        Dodaj raport
+      <h1 class="text-2xl sm:text-3xl font-bold mb-6">
+        Dodaj raport ({{ user?.department }})
       </h1>
 
-      <p class="text-sm text-gray-500 mb-6">
-        Dział: <b>{{ department }}</b>
-      </p>
-
-      <!-- data -->
-
+      <!-- 📅 DATA -->
       <input
           type="date"
           v-model="date"
           class="border p-3 rounded w-full mb-4"
       />
 
-      <!-- zmiana -->
-
+      <!-- 🔄 ZMIANA -->
       <select v-model="shift" class="border p-3 rounded w-full mb-4">
-
-        <option v-for="s in shifts" :key="s">
-          Zmiana {{ s }}
-        </option>
-
+        <option value="1">Zmiana 1</option>
+        <option value="2">Zmiana 2</option>
+        <option value="3">Zmiana 3</option>
       </select>
 
-      <!-- autor -->
+      <!-- 👤 AUTOR -->
+      <div class="mb-4">
 
-      <select v-model="selectedUser" class="border p-3 rounded w-full mb-4">
+        <label class="block text-sm font-medium mb-1">
+          Autor raportu
+        </label>
 
-        <option disabled value="">
-          Wybierz autora
-        </option>
+        <select
+            v-model="selectedUser"
+            class="border p-3 w-full rounded"
+        >
+          <option disabled value="">
+            Wybierz autora
+          </option>
 
-        <option v-for="u in users" :key="u">
-          {{ u }}
-        </option>
+          <option v-for="u in users" :key="u">
+            {{ u }}
+          </option>
 
-        <option value="new">
-          + Dodaj nowego użytkownika
-        </option>
+          <option value="new">
+            ➕ Dodaj nowego
+          </option>
+        </select>
 
-      </select>
+      </div>
 
+      <!-- ➕ NOWY USER -->
       <div v-if="selectedUser === 'new'" class="mb-4">
 
         <input
             v-model="newUser"
             placeholder="Nowy użytkownik"
-            class="border p-3 rounded w-full mb-2"
+            class="border p-3 w-full mb-2 rounded"
         />
 
         <button
@@ -213,8 +154,7 @@ const addReport = async () => {
 
       </div>
 
-      <!-- zadania -->
-
+      <!-- 📋 TASKI -->
       <h2 class="font-semibold mb-2">
         Lista zadań
       </h2>
@@ -222,25 +162,24 @@ const addReport = async () => {
       <div
           v-for="(task,index) in tasks"
           :key="task.text + index"
-          class="border rounded p-3 mb-2"
+          class="border rounded p-3 mb-2 flex items-center gap-3"
       >
 
-        <div class="flex items-center gap-3">
+        <input type="checkbox" v-model="task.done" />
 
-          <input type="checkbox" v-model="task.done" />
+        <span
+            class="flex-1"
+            :class="task.done ? 'line-through text-gray-400' : ''"
+        >
+          {{ task.text }}
+        </span>
 
-          <span class="flex-1">
-            {{ task.text }}
-          </span>
-
-          <button
-              @click="removeTask(index)"
-              class="text-red-500 text-sm"
-          >
-            Usuń
-          </button>
-
-        </div>
+        <button
+            @click="removeTask(index)"
+            class="text-red-500 text-sm"
+        >
+          Usuń
+        </button>
 
       </div>
 
@@ -248,7 +187,7 @@ const addReport = async () => {
 
         <input
             v-model="newTask"
-            placeholder="Dodaj nowe zadanie"
+            placeholder="np. Sprawdzić dostawy, zgłosić brak towaru..."
             @keydown.enter="addTask"
             class="border p-2 rounded w-full"
         />
@@ -262,25 +201,20 @@ const addReport = async () => {
 
       </div>
 
-      <!-- opis raportu -->
-
+      <!-- 📝 OPIS -->
       <h2 class="font-semibold mb-2">
         Opis raportu
       </h2>
 
-      <ClientOnly>
+      <textarea
+          v-model="description"
+          placeholder="Opisz przebieg zmiany..."
+          class="border p-3 w-full mb-6 rounded h-40"
+      />
 
-        <QuillEditor
-            v-model:content="description"
-            contentType="html"
-            theme="snow"
-            class="mb-6 bg-gray-100 border rounded h-[250px] rounded-b-lg "
-        />
-
-      </ClientOnly>
-
+      <!-- 💾 SAVE -->
       <button
-          @click="addReport"
+          @click="save"
           class="w-full bg-red-600 text-white py-3 rounded-lg hover:bg-red-700"
       >
         Zapisz raport
@@ -289,5 +223,4 @@ const addReport = async () => {
     </div>
 
   </div>
-
 </template>
