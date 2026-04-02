@@ -166,6 +166,53 @@ const handleLogout = async () => {
         {{ item.name }}
       </NuxtLink>
 
+      <!-- 👇 LOGIN MOBILE -->
+      <div v-if="!user" class="mt-4 flex flex-col gap-2">
+
+        <select v-model="selectedDepartment" class="border px-2 py-1 rounded text-sm">
+          <option disabled value="">Dział</option>
+          <option value="Magazyn">Magazyn</option>
+          <option value="Dostawy">Dostawy</option>
+          <option value="Spedycja">Spedycja</option>
+          <option value="Kierownik">Kierownik</option>
+        </select>
+
+        <input
+            v-model="passwordInput"
+            type="password"
+            placeholder="hasło"
+            class="border px-2 py-1 rounded text-sm"
+        />
+
+        <button
+            @click="handleLogin"
+            class="bg-red-500 text-white px-3 py-2 rounded"
+        >
+          Wejdź
+        </button>
+
+        <div v-if="errorMsg" class="text-xs text-red-500">
+          {{ errorMsg }}
+        </div>
+
+      </div>
+
+      <!-- 👇 USER MOBILE -->
+      <div v-else class="mt-4 flex flex-col gap-2">
+
+        <div class="text-sm">
+          {{ user.department }} ({{ user.role }})
+        </div>
+
+        <button
+            @click="handleLogout"
+            class="text-red-500 text-sm"
+        >
+          Wyloguj
+        </button>
+
+      </div>
+
     </div>
 
   </header>
