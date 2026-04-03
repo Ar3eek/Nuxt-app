@@ -80,7 +80,7 @@ const handleLogout = async () => {
       </button>
 
       <!-- LOGO -->
-      <NuxtLink to="/" class="md:absolute ">
+      <NuxtLink  class="md:absolute ">
         <img src="/logo23.png" class="h-10 hover:scale-105 transition" />
       </NuxtLink>
 
