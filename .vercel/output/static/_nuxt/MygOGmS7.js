@@ -1,1 +1,0 @@
-import{u as t}from"./CwZp-q15.js";import{n as e,c as n,o}from"./BrDIAhQD.js";const r={class:"flex justify-center items-center min-h-screen"},l={__name:"index",setup(a){const{user:s}=t();return s.value?e("/reports/list"):e("/"),(c,i)=>(o(),n("div",r," Ładowanie... "))}};export{l as default};
