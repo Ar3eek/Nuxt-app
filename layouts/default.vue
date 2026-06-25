@@ -41,7 +41,7 @@
               : 'hover:bg-gray-100'"
               class="block p-3 rounded-lg"
           >
-            📊 Dashboard
+            Dashboard
           </NuxtLink>
 
           <NuxtLink
@@ -52,7 +52,7 @@
               : 'hover:bg-gray-100'"
               class="block p-3 rounded-lg"
           >
-            📋 Raporty
+            Raporty
           </NuxtLink>
 
           <NuxtLink
@@ -60,7 +60,7 @@
               to="/manager"
               class="block p-3 rounded-lg text-red-600 hover:bg-red-50"
           >
-            👑 Manager
+            Manager
           </NuxtLink>
 
         </nav>

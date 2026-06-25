@@ -87,7 +87,7 @@ const addAnnouncement = async () => {
 
     await loadAnnouncements()
 
-    successMessage.value = "✅ Dodano ogłoszenie"
+    successMessage.value = " Dodano ogłoszenie"
 
   } catch(err){
     console.error(err)
@@ -107,7 +107,7 @@ const deleteAnnouncement = async (item: Announcement) => {
     })
 
     await loadAnnouncements()
-    successMessage.value = "🗑 Usunięto ogłoszenie"
+    successMessage.value = "Usunięto ogłoszenie"
 
   } catch(err){
     console.error(err)
@@ -141,7 +141,7 @@ const saveEdit = async (item: Announcement) => {
     editingId.value = null
     await loadAnnouncements()
 
-    successMessage.value = "✏️ Zaktualizowano ogłoszenie"
+    successMessage.value = " Zaktualizowano ogłoszenie"
 
   } catch(err){
     console.error(err)

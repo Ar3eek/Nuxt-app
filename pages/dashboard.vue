@@ -164,7 +164,7 @@ const formatDate = (ts:number) => {
       <div class="bg-white p-6 rounded-xl shadow">
 
         <h2 class="text-lg font-semibold text-red-600 mb-4">
-          📢 Informacje od kierownika
+          Informacje od kierownika
         </h2>
 
         <div v-if="departmentAnnouncements.length === 0" class="text-gray-400 text-sm">
